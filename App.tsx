@@ -35,11 +35,16 @@ const App: React.FC = () => {
       const code = params.get('code');
       
       if (code) {
-        await exchangeCodeForToken(code);
-        // URL에서 code 파라미터 제거
-        window.history.replaceState({}, document.title, window.location.pathname);
-        // 페이지 새로고침하여 로그인 상태 반영
-        window.location.reload();
+        console.log('🔑 OAuth code received, exchanging for token...');
+        const token = await exchangeCodeForToken(code);
+        
+        if (token) {
+          console.log('✅ Token received successfully!');
+          // URL에서 code 파라미터 제거 (새로고침 없이)
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+          console.error('❌ Failed to exchange token');
+        }
       }
     };
 

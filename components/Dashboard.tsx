@@ -28,13 +28,24 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 컴포넌트 로드 시 로그인 상태 확인
+  // 컴포넌트 로드 시 로그인 상태 확인 + 주기적 체크
   useEffect(() => {
-    setIsLoggedIn(isAuthenticated());
-    if (isAuthenticated()) {
-      loadCalendarEvents();
-    }
-  }, []);
+    const checkAuthStatus = () => {
+      const authenticated = isAuthenticated();
+      setIsLoggedIn(authenticated);
+      if (authenticated && calendarEvents.length === 0) {
+        loadCalendarEvents();
+      }
+    };
+
+    // 초기 체크
+    checkAuthStatus();
+
+    // 0.5초마다 인증 상태 체크 (OAuth 콜백 후 즉시 반영)
+    const interval = setInterval(checkAuthStatus, 500);
+
+    return () => clearInterval(interval);
+  }, [calendarEvents.length]);
 
   const loadCalendarEvents = async () => {
     try {
