@@ -1,0 +1,91 @@
+
+import React from 'react';
+import { UserCircle2, ArrowRight, ClipboardList, Sparkles } from 'lucide-react';
+import { Interviewer } from '../types';
+
+interface LandingPageProps {
+  onEnter: (interviewer: Interviewer) => void;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = (document.getElementById('name') as HTMLInputElement).value;
+    const dept = (document.getElementById('dept') as HTMLInputElement).value;
+    if (name && dept) {
+      onEnter({ name, department: dept });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative Elements */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-500"></div>
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-100 rounded-full blur-3xl opacity-50"></div>
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-violet-100 rounded-full blur-3xl opacity-50"></div>
+
+      <div className="w-full max-w-md z-10">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm mb-6 animate-bounce">
+            <Sparkles className="w-4 h-4 text-indigo-500" />
+            <span className="text-xs font-bold text-slate-600">InterViewPro: Intelligence Hub</span>
+          </div>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">반갑습니다, 면접관님!</h1>
+          <p className="text-slate-500">정교한 인재 채용을 위한 인터뷰 기록 시스템입니다.</p>
+        </div>
+
+        <div className="bg-white p-10 rounded-[32px] shadow-2xl shadow-indigo-100/50 border border-slate-100 transition-all hover:border-indigo-100">
+          <div className="flex justify-center mb-8">
+            <div className="bg-indigo-50 p-4 rounded-3xl">
+              <UserCircle2 className="w-12 h-12 text-indigo-600" />
+            </div>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-bold text-slate-700 ml-1">성함</label>
+              <input 
+                required
+                type="text" 
+                id="name"
+                placeholder="김재면"
+                className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900 font-medium"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-bold text-slate-700 ml-1">소속 부서</label>
+              <input 
+                required
+                type="text" 
+                id="dept"
+                placeholder="인사기획팀 / 플랫폼 개발팀"
+                className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-900 font-medium"
+              />
+            </div>
+            
+            <button 
+              type="submit"
+              className="w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-5 px-6 rounded-2xl transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 group"
+            >
+              면접 시스템 입장 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </form>
+
+          <div className="mt-8 pt-6 border-t border-slate-50 text-center">
+            <div className="flex items-center justify-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <span>Greeting ATS 연동</span>
+              <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+              <span>Gemini AI Analytics</span>
+            </div>
+          </div>
+        </div>
+        
+        <p className="text-center mt-8 text-xs text-slate-400">
+          본 시스템은 기업 내부용이며 모든 기록은 사내 채용 데이터로 안전하게 보관됩니다.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default LandingPage;

@@ -1,0 +1,5 @@
+{
+  "name": "InterViewPro: HR Intelligence Hub",
+  "description": "A sophisticated interview management SaaS tool for HR heads to record, consolidate, and analyze interview notes. Features drag-and-drop question pools, multi-interviewer synchronization, and AI-powered job persona analysis using Gemini.",
+  "requestFramePermissions": []
+}
