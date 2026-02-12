@@ -50,6 +50,7 @@ export interface Candidate {
   scheduledTime?: number;
   resumeUrl?: string;
   portfolioUrl?: string;
+  calendarEventId?: string; // 캘린더 이벤트 ID (중복 방지용)
 }
 
 export type ViewState = 'DASHBOARD' | 'INTERVIEW' | 'CONSOLIDATION' | 'ANALYTICS';

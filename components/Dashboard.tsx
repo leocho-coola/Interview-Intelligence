@@ -21,7 +21,7 @@ interface DashboardProps {
   candidates: Candidate[];
   onStartInterview: (id: string) => void;
   onViewConsolidation: (id: string) => void;
-  onCreateCandidateFromEvent?: (eventName: string, eventDescription: string) => string;
+  onCreateCandidateFromEvent?: (eventName: string, eventDescription: string, eventId?: string) => string;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onViewConsolidation, onCreateCandidateFromEvent }) => {
@@ -31,8 +31,8 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 
   const handleEventClick = (event: CalendarEvent) => {
     if (onCreateCandidateFromEvent) {
-      // 캘린더 일정에서 후보자 생성
-      const candidateId = onCreateCandidateFromEvent(event.summary, event.description || '');
+      // 캘린더 일정에서 후보자 생성 (이벤트 ID 포함)
+      const candidateId = onCreateCandidateFromEvent(event.summary, event.description || '', event.id);
       // 바로 면접 시작
       onStartInterview(candidateId);
     }
@@ -61,7 +61,18 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
     try {
       const events = await getTodayEvents();
       const interviewEvents = filterInterviewEvents(events);
-      setCalendarEvents(interviewEvents);
+      
+      // 이미 후보자로 생성된 이벤트는 제외 (calendarEventId 기반)
+      const existingEventIds = candidates
+        .filter(c => c.calendarEventId) // calendarEventId가 있는 후보자만
+        .map(c => c.calendarEventId);
+      
+      const newEvents = interviewEvents.filter(event => 
+        !existingEventIds.includes(event.id)
+      );
+      
+      console.log(`📅 캘린더 이벤트 로드: ${interviewEvents.length}개 중 ${newEvents.length}개 표시 (${existingEventIds.length}개 이미 생성됨)`);
+      setCalendarEvents(newEvents);
     } catch (error) {
       console.error('캘린더 로드 실패:', error);
     }

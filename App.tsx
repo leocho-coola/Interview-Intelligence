@@ -94,7 +94,7 @@ const App: React.FC = () => {
     setView('DASHBOARD');
   };
 
-  const createCandidateFromEvent = (eventName: string, eventDescription: string): string => {
+  const createCandidateFromEvent = (eventName: string, eventDescription: string, eventId?: string): string => {
     const newId = `cal-${Date.now()}`;
     const newCandidate: Candidate = {
       id: newId,
@@ -103,7 +103,8 @@ const App: React.FC = () => {
       notes: [],
       scheduledTime: Date.now(),
       resumeUrl: '',
-      portfolioUrl: eventDescription // 이벤트 설명을 포트폴리오 URL로 사용
+      portfolioUrl: eventDescription, // 이벤트 설명을 포트폴리오 URL로 사용
+      calendarEventId: eventId // 캘린더 이벤트 ID 저장 (중복 방지용)
     };
     
     setCandidates(prev => [...prev, newCandidate]);
