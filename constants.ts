@@ -36,32 +36,4 @@ export const QUESTION_POOL: Question[] = [
   { id: 'hr2', category: 'Culture', text: '본인이 생각하는 이상적인 리더십의 모습은?' },
 ];
 
-export const MOCK_CANDIDATES: Candidate[] = [
-  { 
-    id: 'c1', 
-    name: '김철수', 
-    role: JobRole.FRONTEND, 
-    notes: [], 
-    scheduledTime: getTodayAt(14),
-    resumeUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    portfolioUrl: 'https://github.com'
-  },
-  { 
-    id: 'c2', 
-    name: '이영희', 
-    role: JobRole.BACKEND, 
-    notes: [], 
-    scheduledTime: getTodayAt(16),
-    resumeUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    portfolioUrl: 'https://linkedin.com'
-  },
-  { 
-    id: 'c3', 
-    name: '박민준', 
-    role: JobRole.PRODUCT_MANAGER, 
-    notes: [], 
-    scheduledTime: getTodayAt(10),
-    resumeUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    portfolioUrl: 'https://notion.so'
-  },
-];
+export const MOCK_CANDIDATES: Candidate[] = [];
