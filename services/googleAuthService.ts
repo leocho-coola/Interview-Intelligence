@@ -28,18 +28,31 @@ export const initiateGoogleLogin = () => {
   console.log('  - Client ID:', CLIENT_ID);
   console.log('  - Redirect URI:', REDIRECT_URI);
   console.log('  - Current Origin:', window.location.origin);
-  console.log('  - Full URL:', window.location.href);
   
   authUrl.searchParams.append('client_id', CLIENT_ID || '');
   authUrl.searchParams.append('redirect_uri', REDIRECT_URI);
   authUrl.searchParams.append('response_type', 'code');
   authUrl.searchParams.append('scope', SCOPES);
   authUrl.searchParams.append('access_type', 'offline');
-  authUrl.searchParams.append('prompt', 'consent');
+  
+  // 🎯 저장된 이메일이 있으면 자동으로 해당 계정 선택
+  const savedEmail = localStorage.getItem('google_user_email');
+  
+  if (savedEmail) {
+    // 이전에 로그인한 계정으로 자동 진입
+    authUrl.searchParams.append('login_hint', savedEmail);
+    // prompt 없음 = 이미 동의한 경우 바로 진행
+    console.log('  - Login Hint:', savedEmail);
+    console.log('  - 이전 계정으로 자동 로그인 시도');
+  } else {
+    // 첫 로그인: 계정 선택 필요
+    authUrl.searchParams.append('prompt', 'select_account');
+    console.log('  - 첫 로그인: 계정 선택 필요');
+  }
 
   console.log('🌐 Full Auth URL:', authUrl.toString());
   
-  // 새 창에서 Google 로그인 열기
+  // Google 로그인으로 리디렉션
   window.location.href = authUrl.toString();
 };
 
