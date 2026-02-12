@@ -160,14 +160,14 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm">
-                          <Clock className="w-4 h-4" />
+                          <Clock className="w-4 h-4 flex-shrink-0" />
                           {eventTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
                         </div>
-                        <span className="bg-gradient-to-r from-emerald-400 to-green-400 text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full">📅 일정</span>
+                        <span className="bg-gradient-to-r from-emerald-400 to-green-400 text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0">📅 일정</span>
                       </div>
-                      <h4 className="text-lg font-black text-white group-hover:text-indigo-200 transition-colors mb-2 line-clamp-2">{event.summary}</h4>
+                      <h4 className="text-lg font-black text-white group-hover:text-indigo-200 transition-colors mb-2 break-words">{event.summary}</h4>
                       {event.description && (
-                        <p className="text-sm text-slate-300 font-medium line-clamp-2 mb-3">{event.description}</p>
+                        <p className="text-sm text-slate-300 font-medium line-clamp-2 mb-3 break-words">{event.description}</p>
                       )}
                       <div className="flex items-center gap-2 text-sm text-indigo-200 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
                         <PlayCircle className="w-5 h-5" />
@@ -229,13 +229,13 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
               key={candidate.id} 
               className="group bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-100/50 transition-all p-5 flex items-center justify-between"
             >
-              <div className="flex items-center gap-4 flex-1">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-14 h-14 bg-gradient-to-br from-slate-100 to-slate-200 group-hover:from-indigo-100 group-hover:to-violet-100 rounded-xl flex items-center justify-center transition-all flex-shrink-0">
                   <FileBox className="w-7 h-7 text-slate-400 group-hover:text-indigo-500 transition-colors" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2 truncate">
-                    {candidate.name}
+                  <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2 break-words">
+                    <span className="break-words">{candidate.name}</span>
                     {candidate.notes.length > 0 && <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse"></span>}
                   </h3>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">{candidate.role}</p>

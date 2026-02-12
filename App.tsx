@@ -20,7 +20,19 @@ import Dashboard from './components/Dashboard';
 const App: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>(() => {
     const saved = localStorage.getItem('interview_pro_candidates');
-    return saved ? JSON.parse(saved) : MOCK_CANDIDATES;
+    // MOCK 데이터가 있으면 초기화
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // 김철수, 이영희, 박민준 제거
+      const filtered = parsed.filter((c: Candidate) => 
+        !['c1', 'c2', 'c3'].includes(c.id)
+      );
+      if (filtered.length !== parsed.length) {
+        localStorage.setItem('interview_pro_candidates', JSON.stringify(filtered));
+      }
+      return filtered;
+    }
+    return MOCK_CANDIDATES;
   });
   
   const [currentInterviewer, setCurrentInterviewer] = useState<Interviewer | null>(null);
