@@ -23,13 +23,35 @@ const App: React.FC = () => {
     // MOCK 데이터가 있으면 초기화
     if (saved) {
       const parsed = JSON.parse(saved);
-      // 김철수, 이영희, 박민준 제거
-      const filtered = parsed.filter((c: Candidate) => 
+      
+      // 1. 김철수, 이영희, 박민준 제거
+      let filtered = parsed.filter((c: Candidate) => 
         !['c1', 'c2', 'c3'].includes(c.id)
       );
+      
+      // 2. calendarEventId로 중복 제거 (같은 이벤트로 만들어진 후보자 중 최신 것만 유지)
+      const eventIdMap = new Map<string, Candidate>();
+      filtered.forEach((c: Candidate) => {
+        if (c.calendarEventId) {
+          // 이미 있으면 최신 것으로 교체 (더 큰 scheduledTime)
+          const existing = eventIdMap.get(c.calendarEventId);
+          if (!existing || (c.scheduledTime || 0) > (existing.scheduledTime || 0)) {
+            eventIdMap.set(c.calendarEventId, c);
+          }
+        } else {
+          // calendarEventId가 없는 후보자는 그대로 유지 (수동 추가된 후보자)
+          eventIdMap.set(c.id, c);
+        }
+      });
+      
+      filtered = Array.from(eventIdMap.values());
+      
+      // 변경사항이 있으면 localStorage 업데이트
       if (filtered.length !== parsed.length) {
         localStorage.setItem('interview_pro_candidates', JSON.stringify(filtered));
+        console.log(`🧹 중복 제거: ${parsed.length}개 → ${filtered.length}개`);
       }
+      
       return filtered;
     }
     return MOCK_CANDIDATES;
