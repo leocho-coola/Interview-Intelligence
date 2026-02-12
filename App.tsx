@@ -68,8 +68,8 @@ const App: React.FC = () => {
             console.log('✅ Auto-login as', userName);
           }
           
-          // URL에서 code 파라미터 제거 (새로고침 없이)
-          window.history.replaceState({}, document.title, window.location.pathname);
+          // 루트 경로로 리디렉션 (URL 클린업)
+          window.history.replaceState({}, document.title, '/');
         } else {
           console.error('❌ Failed to exchange token');
         }
