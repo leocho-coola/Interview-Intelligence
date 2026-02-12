@@ -40,6 +40,19 @@ const App: React.FC = () => {
         
         if (token) {
           console.log('✅ Token received successfully!');
+          
+          // Google 로그인으로 들어온 경우 자동으로 면접관 설정
+          const pendingGoogleLogin = localStorage.getItem('pending_google_login');
+          if (pendingGoogleLogin === 'true') {
+            // Google 계정 정보로 면접관 설정 (기본값)
+            setCurrentInterviewer({ 
+              name: 'Google User', 
+              department: 'HR팀' 
+            });
+            localStorage.removeItem('pending_google_login');
+            console.log('✅ Auto-login as Google User');
+          }
+          
           // URL에서 code 파라미터 제거 (새로고침 없이)
           window.history.replaceState({}, document.title, window.location.pathname);
         } else {
