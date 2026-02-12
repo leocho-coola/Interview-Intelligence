@@ -19,6 +19,15 @@ import Dashboard from './components/Dashboard';
 
 const App: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>(() => {
+    // 🚨 TEMPORARY: 완전 초기화 (디버깅용)
+    const forceReset = true; // 문제 해결 후 false로 변경
+    
+    if (forceReset) {
+      console.log('🔥 localStorage 완전 초기화!');
+      localStorage.removeItem('interview_pro_candidates');
+      return [];
+    }
+    
     const saved = localStorage.getItem('interview_pro_candidates');
     // MOCK 데이터가 있으면 초기화
     if (saved) {
@@ -54,7 +63,7 @@ const App: React.FC = () => {
       
       return filtered;
     }
-    return MOCK_CANDIDATES;
+    return [];
   });
   
   const [currentInterviewer, setCurrentInterviewer] = useState<Interviewer | null>(null);

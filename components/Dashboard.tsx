@@ -71,8 +71,19 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
         !existingEventIds.includes(event.id)
       );
       
-      console.log(`📅 캘린더 이벤트 로드: ${interviewEvents.length}개 중 ${newEvents.length}개 표시 (${existingEventIds.length}개 이미 생성됨)`);
-      setCalendarEvents(newEvents);
+      console.log(`📅 캘린더 이벤트 로드: ${interviewEvents.length}개 중 ${newEvents.length}개 신규 발견`);
+      
+      // 🎯 NEW: 신규 이벤트를 자동으로 후보자 보드에 추가
+      if (newEvents.length > 0 && onCreateCandidateFromEvent) {
+        newEvents.forEach(event => {
+          console.log(`✨ 자동 생성: ${event.summary}`);
+          onCreateCandidateFromEvent(event.summary, event.description || '', event.id);
+        });
+      }
+      
+      // 캘린더 위젯에는 빈 배열 설정 (후보자 보드에서만 표시)
+      setCalendarEvents([]);
+      
     } catch (error) {
       console.error('캘린더 로드 실패:', error);
     }
@@ -157,45 +168,16 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
             </div>
           </div>
 
-          {/* 캘린더 일정 표시 */}
+          {/* 캘린더 동기화 상태 표시 */}
           {isLoggedIn && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {calendarEvents.length > 0 ? (
-                calendarEvents.map((event) => {
-                  const eventTime = new Date(event.start);
-                  return (
-                    <div 
-                      key={event.id}
-                      onClick={() => handleEventClick(event)}
-                      className="group bg-white/10 backdrop-blur-sm border border-white/20 p-5 rounded-2xl hover:bg-gradient-to-br hover:from-indigo-500/30 hover:to-violet-500/30 hover:border-white/40 transition-all cursor-pointer hover:scale-105 hover:shadow-xl"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm">
-                          <Clock className="w-4 h-4 flex-shrink-0" />
-                          {eventTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                        </div>
-                        <span className="bg-gradient-to-r from-emerald-400 to-green-400 text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0">📅 일정</span>
-                      </div>
-                      <h4 className="text-lg font-black text-white group-hover:text-indigo-200 transition-colors mb-2 break-words">{event.summary}</h4>
-                      {event.description && (
-                        <p className="text-sm text-slate-300 font-medium line-clamp-2 mb-3 break-words">{event.description}</p>
-                      )}
-                      <div className="flex items-center gap-2 text-sm text-indigo-200 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                        <PlayCircle className="w-5 h-5" />
-                        <span>면접 시작하기</span>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="col-span-full text-center py-12">
-                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 inline-block">
-                    <Calendar className="w-12 h-12 text-slate-400 mx-auto mb-4 opacity-50" />
-                    <p className="text-slate-300 text-base font-semibold">오늘 예정된 면접 일정이 없습니다</p>
-                    <p className="text-slate-400 text-sm mt-2">새로고침 버튼을 눌러 최신 일정을 확인하세요</p>
-                  </div>
-                </div>
-              )}
+            <div className="text-center py-12">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 inline-block">
+                <Calendar className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
+                <p className="text-white text-lg font-bold mb-2">✅ 캘린더 동기화 완료</p>
+                <p className="text-slate-300 text-sm">
+                  오늘의 면접 일정이 아래 <span className="text-emerald-400 font-bold">채용 보드</span>에 자동으로 추가되었습니다
+                </p>
+              </div>
             </div>
           )}
 
