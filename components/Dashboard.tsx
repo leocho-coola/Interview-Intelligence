@@ -21,12 +21,22 @@ interface DashboardProps {
   candidates: Candidate[];
   onStartInterview: (id: string) => void;
   onViewConsolidation: (id: string) => void;
+  onCreateCandidateFromEvent?: (eventName: string, eventDescription: string) => string;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onViewConsolidation }) => {
+const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onViewConsolidation, onCreateCandidateFromEvent }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const handleEventClick = (event: CalendarEvent) => {
+    if (onCreateCandidateFromEvent) {
+      // 캘린더 일정에서 후보자 생성
+      const candidateId = onCreateCandidateFromEvent(event.summary, event.description || '');
+      // 바로 면접 시작
+      onStartInterview(candidateId);
+    }
+  };
 
   // 컴포넌트 로드 시 로그인 상태 확인 + 주기적 체크
   useEffect(() => {
@@ -142,7 +152,8 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                 return (
                   <div 
                     key={event.id}
-                    className="bg-white/5 border border-white/10 p-5 rounded-3xl hover:bg-white/10 transition-all cursor-pointer group"
+                    onClick={() => handleEventClick(event)}
+                    className="bg-white/5 border border-white/10 p-5 rounded-3xl hover:bg-indigo-500/20 transition-all cursor-pointer group"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2 text-indigo-400 font-black text-sm">
@@ -151,10 +162,14 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                       </div>
                       <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">📅 캘린더</span>
                     </div>
-                    <h4 className="text-lg font-black group-hover:text-indigo-400 transition-colors mb-1">{event.summary}</h4>
+                    <h4 className="text-lg font-black group-hover:text-indigo-300 transition-colors mb-1">{event.summary}</h4>
                     {event.description && (
-                      <p className="text-xs text-slate-400 font-medium line-clamp-2">{event.description}</p>
+                      <p className="text-xs text-slate-400 font-medium line-clamp-2 mb-2">{event.description}</p>
                     )}
+                    <div className="flex items-center gap-2 text-xs text-indigo-300 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                      <PlayCircle className="w-4 h-4" />
+                      면접 시작하기
+                    </div>
                   </div>
                 );
               })

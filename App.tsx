@@ -8,7 +8,7 @@ import {
   Settings,
   LayoutDashboard
 } from 'lucide-react';
-import { Candidate, Interviewer, ViewState, InterviewNote } from './types';
+import { Candidate, Interviewer, ViewState, InterviewNote, JobRole } from './types';
 import { MOCK_CANDIDATES } from './constants';
 import { exchangeCodeForToken } from './services/googleAuthService';
 import LandingPage from './components/LandingPage';
@@ -44,13 +44,16 @@ const App: React.FC = () => {
           // Google 로그인으로 들어온 경우 자동으로 면접관 설정
           const pendingGoogleLogin = localStorage.getItem('pending_google_login');
           if (pendingGoogleLogin === 'true') {
-            // Google 계정 정보로 면접관 설정 (기본값)
+            // Google 계정 정보로 면접관 설정
+            const userName = localStorage.getItem('google_user_name') || 'Google User';
+            const userEmail = localStorage.getItem('google_user_email') || '';
+            
             setCurrentInterviewer({ 
-              name: 'Google User', 
-              department: 'HR팀' 
+              name: userName, 
+              department: userEmail 
             });
             localStorage.removeItem('pending_google_login');
-            console.log('✅ Auto-login as Google User');
+            console.log('✅ Auto-login as', userName);
           }
           
           // URL에서 code 파라미터 제거 (새로고침 없이)
@@ -77,6 +80,23 @@ const App: React.FC = () => {
     }));
     setSelectedCandidateId(null);
     setView('DASHBOARD');
+  };
+
+  const createCandidateFromEvent = (eventName: string, eventDescription: string): string => {
+    const newId = `cal-${Date.now()}`;
+    const newCandidate: Candidate = {
+      id: newId,
+      name: eventName,
+      role: '면접' as JobRole, // 기본 역할
+      notes: [],
+      scheduledTime: Date.now(),
+      resumeUrl: '',
+      portfolioUrl: eventDescription // 이벤트 설명을 포트폴리오 URL로 사용
+    };
+    
+    setCandidates(prev => [...prev, newCandidate]);
+    console.log('✅ Created candidate from calendar event:', eventName);
+    return newId;
   };
 
   const selectedCandidate = candidates.find(c => c.id === selectedCandidateId);
@@ -167,6 +187,7 @@ const App: React.FC = () => {
                 setSelectedCandidateId(id);
                 setView('CONSOLIDATION');
               }}
+              onCreateCandidateFromEvent={createCandidateFromEvent}
             />
           ) : view === 'CONSOLIDATION' && selectedCandidate ? (
             <ConsolidationView 

@@ -13,7 +13,9 @@ const REDIRECT_URI = getRedirectUri();
 
 const SCOPES = [
   'https://www.googleapis.com/auth/calendar.readonly',
-  'https://www.googleapis.com/auth/calendar.events.readonly'
+  'https://www.googleapis.com/auth/calendar.events.readonly',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/userinfo.email'
 ].join(' ');
 
 /**
@@ -73,6 +75,10 @@ export const exchangeCodeForToken = async (code: string): Promise<string | null>
       if (data.refresh_token) {
         localStorage.setItem('google_refresh_token', data.refresh_token);
       }
+      
+      // 사용자 정보 가져오기
+      await fetchUserInfo(data.access_token);
+      
       return data.access_token;
     }
 
@@ -80,6 +86,33 @@ export const exchangeCodeForToken = async (code: string): Promise<string | null>
   } catch (error) {
     console.error('Token exchange error:', error);
     return null;
+  }
+};
+
+/**
+ * Google 사용자 정보 가져오기
+ */
+const fetchUserInfo = async (accessToken: string) => {
+  try {
+    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (response.ok) {
+      const userInfo = await response.json();
+      console.log('📧 User Info:', userInfo);
+      
+      // 사용자 정보 저장
+      localStorage.setItem('google_user_name', userInfo.name || userInfo.email);
+      localStorage.setItem('google_user_email', userInfo.email);
+      if (userInfo.picture) {
+        localStorage.setItem('google_user_picture', userInfo.picture);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch user info:', error);
   }
 };
 
