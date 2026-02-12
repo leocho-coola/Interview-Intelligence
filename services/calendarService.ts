@@ -1,7 +1,6 @@
 // Google Calendar API 연동 서비스
 
-const CALENDAR_API_KEY = import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY;
-const CALENDAR_ID = 'primary'; // 기본 캘린더 사용
+import { getAccessToken } from './googleAuthService';
 
 export interface CalendarEvent {
   id: string;
@@ -12,12 +11,14 @@ export interface CalendarEvent {
 }
 
 /**
- * 오늘의 캘린더 일정 가져오기
+ * 오늘의 캘린더 일정 가져오기 (OAuth 방식)
  * @returns 오늘의 일정 목록
  */
 export const getTodayEvents = async (): Promise<CalendarEvent[]> => {
-  if (!CALENDAR_API_KEY || CALENDAR_API_KEY === 'YOUR_GOOGLE_CALENDAR_API_KEY') {
-    console.warn('Google Calendar API 키가 설정되지 않았습니다.');
+  const accessToken = getAccessToken();
+  
+  if (!accessToken) {
+    console.warn('Google 로그인이 필요합니다.');
     return [];
   }
 
@@ -28,13 +29,16 @@ export const getTodayEvents = async (): Promise<CalendarEvent[]> => {
     const timeMax = new Date(today.setHours(23, 59, 59, 999)).toISOString();
 
     const url = new URL('https://www.googleapis.com/calendar/v3/calendars/primary/events');
-    url.searchParams.append('key', CALENDAR_API_KEY);
     url.searchParams.append('timeMin', timeMin);
     url.searchParams.append('timeMax', timeMax);
     url.searchParams.append('singleEvents', 'true');
     url.searchParams.append('orderBy', 'startTime');
 
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
 
     if (!response.ok) {
       console.error('Calendar API 에러:', response.status, response.statusText);

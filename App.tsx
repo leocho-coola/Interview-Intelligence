@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Candidate, Interviewer, ViewState, InterviewNote } from './types';
 import { MOCK_CANDIDATES } from './constants';
+import { exchangeCodeForToken } from './services/googleAuthService';
 import LandingPage from './components/LandingPage';
 import InterviewSession from './components/InterviewSession';
 import ConsolidationView from './components/ConsolidationView';
@@ -26,6 +27,24 @@ const App: React.FC = () => {
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [view, setView] = useState<ViewState>('DASHBOARD');
   const [isAdminMode, setIsAdminMode] = useState(false);
+
+  // OAuth Callback 처리
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      
+      if (code) {
+        await exchangeCodeForToken(code);
+        // URL에서 code 파라미터 제거
+        window.history.replaceState({}, document.title, window.location.pathname);
+        // 페이지 새로고침하여 로그인 상태 반영
+        window.location.reload();
+      }
+    };
+
+    handleOAuthCallback();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('interview_pro_candidates', JSON.stringify(candidates));

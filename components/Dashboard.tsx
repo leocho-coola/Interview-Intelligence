@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Candidate } from '../types';
 import { getTodayEvents, filterInterviewEvents, CalendarEvent } from '../services/calendarService';
+import { initiateGoogleLogin, isAuthenticated, logout } from '../services/googleAuthService';
 import { 
   UserPlus, 
   PlayCircle, 
@@ -11,7 +12,9 @@ import {
   ChevronRight, 
   Calendar, 
   RefreshCw,
-  Clock
+  Clock,
+  LogIn,
+  LogOut
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -23,10 +26,14 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onViewConsolidation }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 컴포넌트 로드 시 자동으로 캘린더 일정 가져오기
+  // 컴포넌트 로드 시 로그인 상태 확인
   useEffect(() => {
-    loadCalendarEvents();
+    setIsLoggedIn(isAuthenticated());
+    if (isAuthenticated()) {
+      loadCalendarEvents();
+    }
   }, []);
 
   const loadCalendarEvents = async () => {
@@ -40,9 +47,23 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
   };
 
   const handleSync = async () => {
+    if (!isAuthenticated()) {
+      alert('먼저 Google 계정으로 로그인해주세요!');
+      return;
+    }
     setIsSyncing(true);
     await loadCalendarEvents();
     setTimeout(() => setIsSyncing(false), 1500);
+  };
+
+  const handleGoogleLogin = () => {
+    initiateGoogleLogin();
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsLoggedIn(false);
+    setCalendarEvents([]);
   };
 
   const todayInterviews = candidates
@@ -72,13 +93,34 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">구글 캘린더 연동됨</p>
               </div>
             </div>
-            <button 
-              onClick={handleSync}
-              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-xl text-xs font-bold transition-all"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} /> 
-              {isSyncing ? '동기화 중...' : 'Google Calendar 동기화'}
-            </button>
+            <div className="flex items-center gap-3">
+              {isLoggedIn ? (
+                <>
+                  <button 
+                    onClick={handleSync}
+                    className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} /> 
+                    {isSyncing ? '동기화 중...' : 'Google Calendar 동기화'}
+                  </button>
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 px-4 py-2 rounded-xl text-xs font-bold transition-all text-red-300"
+                  >
+                    <LogOut className="w-3.5 h-3.5" /> 
+                    로그아웃
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={handleGoogleLogin}
+                  className="flex items-center gap-2 bg-white hover:bg-slate-100 border border-white/20 px-6 py-3 rounded-xl text-sm font-bold transition-all text-slate-900 shadow-lg"
+                >
+                  <LogIn className="w-4 h-4" /> 
+                  Google 계정으로 로그인
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
