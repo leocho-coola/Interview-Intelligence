@@ -8,11 +8,18 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        allowedHosts: ['.sandbox.novita.ai'],
+        hmr: {
+          protocol: 'wss',
+          host: '3000-iuyzw3jp6wha8oyxbeghb-de59bda9.sandbox.novita.ai',
+          clientPort: 443,
+        },
       },
       plugins: [react()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        'import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY': JSON.stringify(env.GOOGLE_CALENDAR_API_KEY)
       },
       resolve: {
         alias: {

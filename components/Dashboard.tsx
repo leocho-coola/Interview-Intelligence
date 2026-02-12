@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Candidate } from '../types';
+import { getTodayEvents, filterInterviewEvents, CalendarEvent } from '../services/calendarService';
 import { 
   UserPlus, 
   PlayCircle, 
@@ -21,9 +22,26 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onViewConsolidation }) => {
   const [isSyncing, setIsSyncing] = useState(false);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
 
-  const handleSync = () => {
+  // 컴포넌트 로드 시 자동으로 캘린더 일정 가져오기
+  useEffect(() => {
+    loadCalendarEvents();
+  }, []);
+
+  const loadCalendarEvents = async () => {
+    try {
+      const events = await getTodayEvents();
+      const interviewEvents = filterInterviewEvents(events);
+      setCalendarEvents(interviewEvents);
+    } catch (error) {
+      console.error('캘린더 로드 실패:', error);
+    }
+  };
+
+  const handleSync = async () => {
     setIsSyncing(true);
+    await loadCalendarEvents();
     setTimeout(() => setIsSyncing(false), 1500);
   };
 
@@ -64,23 +82,57 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {todayInterviews.map((candidate) => (
-              <div 
-                key={candidate.id}
-                className="bg-white/5 border border-white/10 p-5 rounded-3xl hover:bg-white/10 transition-all cursor-pointer group"
-                onClick={() => onStartInterview(candidate.id)}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-indigo-400 font-black text-sm">
-                    <Clock className="w-4 h-4" />
-                    {formatTime(candidate.scheduledTime)}
+            {/* Google Calendar 일정이 있으면 먼저 표시 */}
+            {calendarEvents.length > 0 ? (
+              calendarEvents.map((event) => {
+                const eventTime = new Date(event.start);
+                return (
+                  <div 
+                    key={event.id}
+                    className="bg-white/5 border border-white/10 p-5 rounded-3xl hover:bg-white/10 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-indigo-400 font-black text-sm">
+                        <Clock className="w-4 h-4" />
+                        {eventTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                      </div>
+                      <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">📅 캘린더</span>
+                    </div>
+                    <h4 className="text-lg font-black group-hover:text-indigo-400 transition-colors mb-1">{event.summary}</h4>
+                    {event.description && (
+                      <p className="text-xs text-slate-400 font-medium line-clamp-2">{event.description}</p>
+                    )}
                   </div>
-                  <span className="bg-white/10 text-[10px] font-bold px-2 py-0.5 rounded-full text-slate-300">UPCOMING</span>
+                );
+              })
+            ) : (
+              /* 기존 모의 데이터 표시 */
+              todayInterviews.length > 0 ? (
+                todayInterviews.map((candidate) => (
+                  <div 
+                    key={candidate.id}
+                    className="bg-white/5 border border-white/10 p-5 rounded-3xl hover:bg-white/10 transition-all cursor-pointer group"
+                    onClick={() => onStartInterview(candidate.id)}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-indigo-400 font-black text-sm">
+                        <Clock className="w-4 h-4" />
+                        {formatTime(candidate.scheduledTime)}
+                      </div>
+                      <span className="bg-white/10 text-[10px] font-bold px-2 py-0.5 rounded-full text-slate-300">UPCOMING</span>
+                    </div>
+                    <h4 className="text-lg font-black group-hover:text-indigo-400 transition-colors">{candidate.name}</h4>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-tighter">{candidate.role}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-8">
+                  <p className="text-slate-400 text-sm">
+                    {calendarEvents.length === 0 ? '오늘 예정된 면접 일정이 없습니다.' : '캘린더를 동기화하세요.'}
+                  </p>
                 </div>
-                <h4 className="text-lg font-black group-hover:text-indigo-400 transition-colors">{candidate.name}</h4>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-tighter">{candidate.role}</p>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
       </section>
