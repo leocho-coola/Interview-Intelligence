@@ -2,7 +2,14 @@
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_SECRET;
-const REDIRECT_URI = 'http://localhost:3000/auth/callback';
+
+// 현재 호스트에 맞게 리디렉션 URI 동적 생성
+const getRedirectUri = () => {
+  const origin = window.location.origin;
+  return `${origin}/auth/callback`;
+};
+
+const REDIRECT_URI = getRedirectUri();
 
 const SCOPES = [
   'https://www.googleapis.com/auth/calendar.readonly',
