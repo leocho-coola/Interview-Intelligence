@@ -22,6 +22,12 @@ const SCOPES = [
 export const initiateGoogleLogin = () => {
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   
+  console.log('🔑 OAuth Configuration:');
+  console.log('  - Client ID:', CLIENT_ID);
+  console.log('  - Redirect URI:', REDIRECT_URI);
+  console.log('  - Current Origin:', window.location.origin);
+  console.log('  - Full URL:', window.location.href);
+  
   authUrl.searchParams.append('client_id', CLIENT_ID || '');
   authUrl.searchParams.append('redirect_uri', REDIRECT_URI);
   authUrl.searchParams.append('response_type', 'code');
@@ -29,6 +35,8 @@ export const initiateGoogleLogin = () => {
   authUrl.searchParams.append('access_type', 'offline');
   authUrl.searchParams.append('prompt', 'consent');
 
+  console.log('🌐 Full Auth URL:', authUrl.toString());
+  
   // 새 창에서 Google 로그인 열기
   window.location.href = authUrl.toString();
 };
