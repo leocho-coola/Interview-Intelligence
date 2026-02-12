@@ -31,10 +31,19 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 
   const handleEventClick = (event: CalendarEvent) => {
     if (onCreateCandidateFromEvent) {
-      // 캘린더 일정에서 후보자 생성 (이벤트 ID 포함)
-      const candidateId = onCreateCandidateFromEvent(event.summary, event.description || '', event.id);
-      // 바로 면접 시작
-      onStartInterview(candidateId);
+      // 이미 이 이벤트로 생성된 후보자가 있는지 확인
+      const existingCandidate = candidates.find(c => c.calendarEventId === event.id);
+      
+      if (existingCandidate) {
+        // 이미 생성된 후보자가 있으면 바로 면접 시작
+        console.log('✅ 기존 후보자로 면접 시작:', existingCandidate.name);
+        onStartInterview(existingCandidate.id);
+      } else {
+        // 새로운 후보자 생성 후 면접 시작
+        console.log('✨ 신규 후보자 생성:', event.summary);
+        const candidateId = onCreateCandidateFromEvent(event.summary, event.description || '', event.id);
+        onStartInterview(candidateId);
+      }
     }
   };
 
@@ -62,19 +71,11 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
       const events = await getTodayEvents();
       const interviewEvents = filterInterviewEvents(events);
       
-      // 이미 후보자로 생성된 이벤트는 제외 (calendarEventId 기반)
-      const existingEventIds = candidates
-        .filter(c => c.calendarEventId) // calendarEventId가 있는 후보자만
-        .map(c => c.calendarEventId);
+      // ✅ 모든 면접 일정을 항상 표시 (필터링 제거!)
+      console.log(`📅 캘린더 이벤트 로드: ${interviewEvents.length}개 표시`);
       
-      const newEvents = interviewEvents.filter(event => 
-        !existingEventIds.includes(event.id)
-      );
-      
-      console.log(`📅 캘린더 이벤트 로드: ${interviewEvents.length}개 중 ${newEvents.length}개 표시 (${existingEventIds.length}개 이미 생성됨)`);
-      
-      // 캘린더 위젯에 표시 (자동 생성 제거!)
-      setCalendarEvents(newEvents);
+      // 캘린더 위젯에 모든 일정 표시
+      setCalendarEvents(interviewEvents);
       
     } catch (error) {
       console.error('캘린더 로드 실패:', error);
