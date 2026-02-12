@@ -50,16 +50,22 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [showResume, setShowResume] = useState(true);
   const [selectedStage, setSelectedStage] = useState<InterviewStage>(InterviewStage.FIRST_TECHNICAL);
+  
+  // localStorage에서 커스텀 질문 Pool 로드
+  const [questionPool, setQuestionPool] = useState<Question[]>(() => {
+    const saved = localStorage.getItem('custom_interview_questions');
+    return saved ? JSON.parse(saved) : QUESTION_POOL;
+  });
 
   const categories = useMemo(() => {
-    const cats = Array.from(new Set(QUESTION_POOL.map(q => q.category)));
+    const cats = Array.from(new Set(questionPool.map(q => q.category)));
     return ['All', ...cats];
-  }, []);
+  }, [questionPool]);
 
   const filteredQuestions = useMemo(() => {
-    if (activeCategory === 'All') return QUESTION_POOL;
-    return QUESTION_POOL.filter(q => q.category === activeCategory);
-  }, [activeCategory]);
+    if (activeCategory === 'All') return questionPool;
+    return questionPool.filter(q => q.category === activeCategory);
+  }, [activeCategory, questionPool]);
 
   const handleDragStart = (e: React.DragEvent, question: Question) => {
     e.dataTransfer.setData('question', JSON.stringify(question));

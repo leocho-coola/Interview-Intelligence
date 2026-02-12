@@ -5,7 +5,7 @@ import {
   BarChart3, 
   ClipboardList,
   UserCircle2,
-  Settings,
+  Settings as SettingsIcon,
   LayoutDashboard
 } from 'lucide-react';
 import { Candidate, Interviewer, ViewState, InterviewNote, JobRole } from './types';
@@ -16,6 +16,7 @@ import InterviewSession from './components/InterviewSession';
 import ConsolidationView from './components/ConsolidationView';
 import Analytics from './components/Analytics';
 import Dashboard from './components/Dashboard';
+import Settings from './components/Settings';
 
 const App: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>(() => {
@@ -173,10 +174,10 @@ const App: React.FC = () => {
               <BarChart3 className="w-5 h-5" /> 직무 페르조나 분석
             </button>
             <button 
-              onClick={() => setIsAdminMode(!isAdminMode)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-slate-500 hover:bg-slate-50`}
+              onClick={() => { setView('SETTINGS'); setIsAdminMode(true); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${view === 'SETTINGS' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
-              <Settings className="w-5 h-5" /> 시스템 설정
+              <SettingsIcon className="w-5 h-5" /> 면접 질문 관리
             </button>
           </div>
         </div>
@@ -231,6 +232,10 @@ const App: React.FC = () => {
           ) : view === 'ANALYTICS' ? (
             <Analytics 
               candidates={candidates} 
+              onBack={() => { setView('DASHBOARD'); setIsAdminMode(false); }}
+            />
+          ) : view === 'SETTINGS' ? (
+            <Settings 
               onBack={() => { setView('DASHBOARD'); setIsAdminMode(false); }}
             />
           ) : (

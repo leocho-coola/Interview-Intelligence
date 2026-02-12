@@ -34,6 +34,36 @@ export const QUESTION_POOL: Question[] = [
   // Culture / HR
   { id: 'hr1', category: 'Culture', text: '가장 일하기 좋았던 조직의 특징은 무엇이었나요?' },
   { id: 'hr2', category: 'Culture', text: '본인이 생각하는 이상적인 리더십의 모습은?' },
+  
+  // 메이크스타 컬쳐 인터뷰 - 6가지 일하는 방식
+  // 1. 우리 모두의 길로 여긴다
+  { id: 'culture1', category: 'Culture', text: '회사의 최우선 목표와 중요한 일이라면 망설임 없이 도와서 해결한 경험이 있나요? 구체적으로 말씀해주세요.' },
+  { id: 'culture2', category: 'Culture', text: '"나와 나의 일을 구분하지 않아요" - 회사의 문제를 본인의 문제처럼 생각하고 해결했던 사례가 있나요?' },
+  
+  // 2. 실수는 공개하고 해결합니다
+  { id: 'culture3', category: 'Culture', text: '업무 중 실수를 했을 때, 어떻게 공개하고 해결했나요? 구체적인 사례를 말씀해주세요.' },
+  { id: 'culture4', category: 'Culture', text: '누구라도 실수를 할 수 있다고 생각하시나요? 실수를 반복하지 않도록 한 본인만의 방법이 있나요?' },
+  { id: 'culture5', category: 'Culture', text: '"그럴 수도 있어요. 그럼 반복하지 않도록 어떻게 하면 좋을까요?" - 실수를 개선의 기회로 만든 경험이 있나요?' },
+  
+  // 3. 서로 경청하고 해야 할 말은 결손하고 예의 바르게 합니다
+  { id: 'culture6', category: 'Culture', text: '팀원의 의견을 경청하고 존중했던 구체적인 사례가 있나요?' },
+  { id: 'culture7', category: 'Culture', text: '어려운 피드백을 전달해야 했던 상황에서, 어떻게 솔직하면서도 예의 바르게 이야기했나요?' },
+  { id: 'culture8', category: 'Culture', text: '"마이크 들리지 않아요" - 상대방이 제대로 이해했는지 확인하며 소통한 경험이 있나요?' },
+  
+  // 4. 충분한 맥락과 배경을 공유합니다
+  { id: 'culture9', category: 'Culture', text: '업무 공유 시 배경과 맥락을 충분히 설명해서 팀의 이해를 도운 사례가 있나요?' },
+  { id: 'culture10', category: 'Culture', text: '"왜?"라는 질문을 서로가 어려워하지 않도록 한 경험이 있나요?' },
+  { id: 'culture11', category: 'Culture', text: '"모든 사람이 알고 있다는 가정 하에 이야기 하지 않아요" - 정보 비대칭을 해소했던 사례를 말씀해주세요.' },
+  
+  // 5. NO 보다는 YES를 이야기합니다
+  { id: 'culture12', category: 'Culture', text: '불가능해 보이는 요청에도 대안을 제시하며 긍정적으로 고려해본 경험이 있나요?' },
+  { id: 'culture13', category: 'Culture', text: '반대를 위한 반대는 하지 않고, 건설적인 대안을 제시했던 사례가 있나요?' },
+  { id: 'culture14', category: 'Culture', text: '"못해요, 싫어요, 안돼요는 안돼요" - 긍정적인 태도로 문제를 해결했던 경험을 말씀해주세요.' },
+  
+  // 6. 항상 회사에 도움이 되는 방향으로 결정합니다
+  { id: 'culture15', category: 'Culture', text: '회사의 이익과 목표를 최우선으로 두고 결정을 내렸던 구체적인 사례가 있나요?' },
+  { id: 'culture16', category: 'Culture', text: '개인적으로 해야 할 일이 있더라도, 회사의 중요한 일을 우선시했던 경험이 있나요?' },
+  { id: 'culture17', category: 'Culture', text: '"한 마음 한 뜻으로 모여요" - 팀의 목표를 위해 본인의 의견을 조율했던 사례를 말씀해주세요.' },
 ];
 
 export const MOCK_CANDIDATES: Candidate[] = [];
