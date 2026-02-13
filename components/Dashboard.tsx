@@ -21,7 +21,7 @@ interface DashboardProps {
   candidates: Candidate[];
   onStartInterview: (id: string) => void;
   onViewConsolidation: (id: string) => void;
-  onCreateCandidateFromEvent?: (eventName: string, eventDescription: string, eventId?: string) => string;
+  onCreateCandidateFromEvent?: (eventName: string, eventDescription: string, eventId?: string, eventStartTime?: string) => string;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onViewConsolidation, onCreateCandidateFromEvent }) => {
@@ -39,9 +39,9 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
         console.log('✅ 기존 후보자로 면접 시작:', existingCandidate.name);
         onStartInterview(existingCandidate.id);
       } else {
-        // 새로운 후보자 생성 후 면접 시작
-        console.log('✨ 신규 후보자 생성:', event.summary);
-        const candidateId = onCreateCandidateFromEvent(event.summary, event.description || '', event.id);
+        // 새로운 후보자 생성 후 면접 시작 (이벤트 시작 시간 전달)
+        console.log('✨ 신규 후보자 생성:', event.summary, '시간:', event.start);
+        const candidateId = onCreateCandidateFromEvent(event.summary, event.description || '', event.id, event.start);
         onStartInterview(candidateId);
       }
     }
@@ -214,12 +214,26 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
             </div>
           </div>
 
-          {/* 캘린더 일정 표시 */}
+          {/* 캘린더 일정 표시 - 오늘 것만 */}
           {isLoggedIn && (
             <div className="space-y-2.5">
-              {calendarEvents.length > 0 ? (
-                calendarEvents.map((event) => {
-                  const eventTime = new Date(event.start);
+              {(() => {
+                // 오늘 날짜만 필터링
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayTimestamp = today.getTime();
+                
+                const todayEvents = calendarEvents.filter(event => {
+                  const eventDate = new Date(event.start);
+                  eventDate.setHours(0, 0, 0, 0);
+                  return eventDate.getTime() === todayTimestamp;
+                });
+                
+                console.log('📅 오늘의 면접 일정:', todayEvents.length, '개');
+                
+                return todayEvents.length > 0 ? (
+                  todayEvents.map((event) => {
+                    const eventTime = new Date(event.start);
                   return (
                     <div 
                       key={event.id}
@@ -264,8 +278,8 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                       </button>
                     </div>
                   );
-                })
-              ) : (
+                  })
+                ) : (
                 <div className="text-center py-12">
                   <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 inline-block">
                     <Calendar className="w-12 h-12 text-slate-400 mx-auto mb-4 opacity-50" />
@@ -273,7 +287,8 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                     <p className="text-slate-400 text-sm mt-2">새로고침 버튼을 눌러 최신 일정을 확인하세요</p>
                   </div>
                 </div>
-              )}
+              );
+            })()}
             </div>
           )}
 
@@ -404,6 +419,23 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
           <h4 className="text-xl font-bold text-slate-800 mb-2">아직 면접 기록이 없습니다</h4>
           <p className="text-slate-500 text-sm max-w-md mx-auto mb-6">
             캘린더 일정을 클릭하여 면접을 시작하거나<br/>
+            우측 상단의 "후보자 추가" 버튼을 눌러주세요
+          </p>
+          <button 
+            onClick={handleGoogleLogin}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
+          >
+            <Calendar className="w-5 h-5" />
+            캘린더 연동하기
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Dashboard;
+클릭하여 면접을 시작하거나<br/>
             우측 상단의 "후보자 추가" 버튼을 눌러주세요
           </p>
           <button 
