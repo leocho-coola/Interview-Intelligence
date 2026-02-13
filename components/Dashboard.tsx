@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Candidate } from '../types';
 import { getTodayEvents, filterInterviewEvents, CalendarEvent } from '../services/calendarService';
 import { initiateGoogleLogin, isAuthenticated, logout } from '../services/googleAuthService';
@@ -102,13 +102,58 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
     setCalendarEvents([]);
   };
 
-  const todayInterviews = candidates
-    .filter(c => c.scheduledTime)
-    .sort((a, b) => (a.scheduledTime || 0) - (b.scheduledTime || 0));
+  // 오늘 날짜를 기준으로 정렬 (오늘 면접 대상자가 상단에)
+  const sortedCandidates = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTimestamp = today.getTime();
+    
+    return [...candidates].sort((a, b) => {
+      const aTime = a.scheduledTime || 0;
+      const bTime = b.scheduledTime || 0;
+      
+      const aDate = new Date(aTime);
+      aDate.setHours(0, 0, 0, 0);
+      const aIsToday = aDate.getTime() === todayTimestamp;
+      
+      const bDate = new Date(bTime);
+      bDate.setHours(0, 0, 0, 0);
+      const bIsToday = bDate.getTime() === todayTimestamp;
+      
+      // 오늘 면접이 최우선
+      if (aIsToday && !bIsToday) return -1;
+      if (!aIsToday && bIsToday) return 1;
+      
+      // 둘 다 오늘이면 시간순
+      if (aIsToday && bIsToday) return aTime - bTime;
+      
+      // 둘 다 오늘이 아니면 최신순
+      return bTime - aTime;
+    });
+  }, [candidates]);
 
   const formatTime = (ts?: number) => {
     if (!ts) return '';
     return new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  };
+  
+  const formatDate = (ts?: number) => {
+    if (!ts) return '';
+    const date = new Date(ts);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+    
+    const diffDays = Math.floor((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return '오늘';
+    if (diffDays === 1) return '내일';
+    if (diffDays === -1) return '어제';
+    if (diffDays > 1 && diffDays <= 7) return `${diffDays}일 후`;
+    if (diffDays < -1 && diffDays >= -7) return `${Math.abs(diffDays)}일 전`;
+    
+    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
   };
 
   return (
@@ -237,41 +282,90 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
       </header>
 
       {/* Candidates Grid */}
-      {candidates.length > 0 ? (
+      {sortedCandidates.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {candidates.map(candidate => (
-            <div 
-              key={candidate.id} 
-              className="group bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-100/50 transition-all p-5 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-4 flex-1 min-w-0">
-                <div className="w-14 h-14 bg-gradient-to-br from-slate-100 to-slate-200 group-hover:from-indigo-100 group-hover:to-violet-100 rounded-xl flex items-center justify-center transition-all flex-shrink-0">
-                  <FileBox className="w-7 h-7 text-slate-400 group-hover:text-indigo-500 transition-colors" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2 break-words">
-                    <span className="break-words">{candidate.name}</span>
-                    {candidate.notes.length > 0 && <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse"></span>}
-                  </h3>
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">{candidate.role}</p>
-                  <div className="flex items-center gap-2 flex-wrap">
-                     <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-bold">면접 {candidate.notes.length}회</span>
-                     {candidate.scheduledTime && (
-                       <span className="text-xs text-indigo-600 font-bold flex items-center gap-1">
-                         <Clock className="w-3.5 h-3.5" /> {formatTime(candidate.scheduledTime)}
-                       </span>
-                     )}
+          {sortedCandidates.map(candidate => {
+            const isToday = candidate.scheduledTime && formatDate(candidate.scheduledTime) === '오늘';
+            
+            return (
+              <div 
+                key={candidate.id} 
+                className={`group bg-white rounded-2xl border transition-all p-5 flex items-start gap-4 ${
+                  isToday 
+                    ? 'border-indigo-400 shadow-lg shadow-indigo-100/50 ring-2 ring-indigo-200' 
+                    : 'border-slate-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-100/50'
+                }`}
+              >
+                {/* 날짜 표시 (왼쪽) */}
+                {candidate.scheduledTime && (
+                  <div className="flex-shrink-0 w-16 text-center">
+                    <div className={`text-xs font-black uppercase tracking-wider mb-1 ${
+                      isToday ? 'text-indigo-600' : 'text-slate-400'
+                    }`}>
+                      {formatDate(candidate.scheduledTime)}
+                    </div>
+                    <div className={`text-2xl font-black ${
+                      isToday ? 'text-indigo-600' : 'text-slate-700'
+                    }`}>
+                      {new Date(candidate.scheduledTime).getDate()}
+                    </div>
+                    <div className={`text-xs font-bold ${
+                      isToday ? 'text-indigo-500' : 'text-slate-500'
+                    }`}>
+                      {new Date(candidate.scheduledTime).toLocaleDateString('ko-KR', { month: 'short' }).replace('월', '')}월
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className={`w-14 h-14 bg-gradient-to-br rounded-xl flex items-center justify-center transition-all flex-shrink-0 ${
+                    isToday 
+                      ? 'from-indigo-100 to-violet-100' 
+                      : 'from-slate-100 to-slate-200 group-hover:from-indigo-100 group-hover:to-violet-100'
+                  }`}>
+                    <FileBox className={`w-7 h-7 transition-colors ${
+                      isToday ? 'text-indigo-500' : 'text-slate-400 group-hover:text-indigo-500'
+                    }`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2 break-words">
+                      <span className="break-words">{candidate.name}</span>
+                      {candidate.notes.length > 0 && <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse"></span>}
+                      {isToday && <span className="px-2 py-0.5 bg-indigo-500 text-white text-[10px] font-black rounded-full">TODAY</span>}
+                    </h3>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">{candidate.role}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                       <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-bold">면접 {candidate.notes.length}회</span>
+                       {candidate.scheduledTime && (
+                         <span className="text-xs text-indigo-600 font-bold flex items-center gap-1">
+                           <Clock className="w-3.5 h-3.5" /> {formatTime(candidate.scheduledTime)}
+                         </span>
+                       )}
+                    </div>
                   </div>
                 </div>
+                
+                <div className="flex gap-2 flex-shrink-0">
+                  <button 
+                    onClick={() => onStartInterview(candidate.id)}
+                    className="bg-gradient-to-r from-slate-900 to-slate-800 hover:from-indigo-600 hover:to-violet-600 text-white h-12 px-6 rounded-xl text-sm font-black transition-all flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105"
+                  >
+                    면접 시작 <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => onViewConsolidation(candidate.id)}
+                    disabled={candidate.notes.length === 0}
+                    className="bg-white border-2 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 h-12 w-12 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 disabled:hover:bg-white disabled:hover:border-slate-200 hover:scale-105"
+                    title="통합 결과 보기"
+                  >
+                    <Eye className="w-5 h-5 text-slate-600" />
+                  </button>
+                </div>
               </div>
-              
-              <div className="flex gap-2 flex-shrink-0">
-                <button 
-                  onClick={() => onStartInterview(candidate.id)}
-                  className="bg-gradient-to-r from-slate-900 to-slate-800 hover:from-indigo-600 hover:to-violet-600 text-white h-12 px-6 rounded-xl text-sm font-black transition-all flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105"
-                >
-                  면접 시작 <ChevronRight className="w-4 h-4" />
-                </button>
+            );
+          })}
+        </div>
+      ) : (
                 <button 
                   onClick={() => onViewConsolidation(candidate.id)}
                   disabled={candidate.notes.length === 0}

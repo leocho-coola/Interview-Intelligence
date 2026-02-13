@@ -6,7 +6,8 @@ import {
   ClipboardList,
   UserCircle2,
   Settings as SettingsIcon,
-  LayoutDashboard
+  LayoutDashboard,
+  TrendingUp
 } from 'lucide-react';
 import { Candidate, Interviewer, ViewState, InterviewNote, JobRole } from './types';
 import { MOCK_CANDIDATES } from './constants';
@@ -17,6 +18,7 @@ import ConsolidationView from './components/ConsolidationView';
 import Analytics from './components/Analytics';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
+import WeeklyStats from './components/WeeklyStats';
 
 const App: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>(() => {
@@ -168,6 +170,12 @@ const App: React.FC = () => {
           <div className="pt-4 mt-4 border-t border-slate-100">
             <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">HR Admin Menu</p>
             <button 
+              onClick={() => { setView('WEEKLY_STATS'); setIsAdminMode(true); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${view === 'WEEKLY_STATS' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              <TrendingUp className="w-5 h-5" /> 주간 면접 통계
+            </button>
+            <button 
               onClick={() => { setView('ANALYTICS'); setIsAdminMode(true); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${view === 'ANALYTICS' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
             >
@@ -236,6 +244,11 @@ const App: React.FC = () => {
             />
           ) : view === 'SETTINGS' ? (
             <Settings 
+              onBack={() => { setView('DASHBOARD'); setIsAdminMode(false); }}
+            />
+          ) : view === 'WEEKLY_STATS' ? (
+            <WeeklyStats 
+              candidates={candidates}
               onBack={() => { setView('DASHBOARD'); setIsAdminMode(false); }}
             />
           ) : (
