@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UserCircle2, ArrowRight, ClipboardList, Sparkles, LogIn } from 'lucide-react';
+import { UserCircle2, ArrowRight, ClipboardList, Sparkles, LogIn, Star } from 'lucide-react';
 import { Interviewer } from '../types';
 import { initiateGoogleLogin } from '../services/googleAuthService';
 
@@ -43,8 +43,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
 
         <div className="bg-white p-10 rounded-[32px] shadow-2xl shadow-indigo-100/50 border border-slate-100 transition-all hover:border-indigo-100">
           <div className="flex justify-center mb-8">
-            <div className="bg-indigo-50 p-4 rounded-3xl">
-              <UserCircle2 className="w-12 h-12 text-indigo-600" />
+            {/* 별 로고 */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-pink-300 rounded-3xl blur-xl opacity-50 animate-pulse"></div>
+              <div className="relative bg-gradient-to-br from-pink-500 to-pink-400 p-6 rounded-3xl shadow-lg">
+                <Star className="w-16 h-16 text-white fill-white" />
+              </div>
             </div>
           </div>
           

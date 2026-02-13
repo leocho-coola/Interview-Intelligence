@@ -210,7 +210,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 
           {/* 캘린더 일정 표시 */}
           {isLoggedIn && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+            <div className="space-y-2.5">
               {calendarEvents.length > 0 ? (
                 calendarEvents.map((event) => {
                   const eventTime = new Date(event.start);
@@ -218,28 +218,49 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                     <div 
                       key={event.id}
                       onClick={() => handleEventClick(event)}
-                      className="group bg-white/10 backdrop-blur-sm border border-white/20 p-4 rounded-xl hover:bg-gradient-to-br hover:from-indigo-500/30 hover:to-violet-500/30 hover:border-white/40 transition-all cursor-pointer hover:scale-105 hover:shadow-xl"
+                      className="group bg-white/10 backdrop-blur-sm border border-white/20 p-3 rounded-xl hover:bg-gradient-to-br hover:from-indigo-500/30 hover:to-violet-500/30 hover:border-white/40 transition-all cursor-pointer hover:shadow-xl flex items-center gap-3"
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5 text-indigo-300 font-bold text-xs">
-                          <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                          {eventTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                      {/* 날짜 표시 (왼쪽) */}
+                      <div className="flex-shrink-0 w-12 text-center">
+                        <div className="text-[10px] font-black uppercase tracking-tight mb-0.5 text-indigo-300">
+                          오늘
                         </div>
-                        <span className="bg-gradient-to-r from-emerald-400 to-green-400 text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0">📅 TODAY</span>
+                        <div className="text-xl font-black text-white">
+                          {eventTime.getDate()}
+                        </div>
+                        <div className="text-[10px] font-bold text-indigo-300">
+                          {eventTime.toLocaleDateString('ko-KR', { month: 'short' }).replace('월', '')}월
+                        </div>
                       </div>
-                      <h4 className="text-sm font-bold text-white group-hover:text-indigo-200 transition-colors mb-1.5 break-words line-clamp-2">{event.summary}</h4>
-                      {event.description && (
-                        <p className="text-xs text-slate-300 font-medium line-clamp-1 mb-2 break-words">{event.description}</p>
-                      )}
-                      <div className="flex items-center gap-1.5 text-xs text-indigo-200 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                        <PlayCircle className="w-4 h-4" />
-                        <span>면접 시작</span>
+                      
+                      {/* 아이콘 */}
+                      <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center transition-all flex-shrink-0">
+                        <Calendar className="w-5 h-5 text-white" />
                       </div>
+                      
+                      {/* 내용 */}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold text-white group-hover:text-indigo-200 transition-colors mb-0.5 break-words truncate">{event.summary}</h4>
+                        <p className="text-[10px] text-indigo-300 font-semibold uppercase tracking-wide mb-1">면접 일정</p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-md font-bold flex items-center gap-0.5">
+                            <Clock className="w-3 h-3" /> {eventTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                          </span>
+                          <span className="bg-gradient-to-r from-emerald-400 to-green-400 text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0">📅 TODAY</span>
+                        </div>
+                      </div>
+                      
+                      {/* 버튼 */}
+                      <button 
+                        className="bg-white hover:bg-white/90 text-slate-900 h-9 px-4 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-md hover:shadow-lg flex-shrink-0"
+                      >
+                        면접 시작 <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   );
                 })
               ) : (
-                <div className="col-span-full text-center py-12">
+                <div className="text-center py-12">
                   <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 inline-block">
                     <Calendar className="w-12 h-12 text-slate-400 mx-auto mb-4 opacity-50" />
                     <p className="text-slate-300 text-base font-semibold">오늘 예정된 면접 일정이 없습니다</p>
