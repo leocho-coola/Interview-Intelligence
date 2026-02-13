@@ -435,16 +435,6 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 };
 
 export default Dashboard;
-클릭하여 면접을 시작하거나<br/>
-            우측 상단의 "후보자 추가" 버튼을 눌러주세요
-          </p>
-          <button 
-            onClick={handleGoogleLogin}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
-          >
-            <Calendar className="w-5 h-5" />
-            캘린더 연동하기
-          </button>
         </div>
       )}
     </div>
