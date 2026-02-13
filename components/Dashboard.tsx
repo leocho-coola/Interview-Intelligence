@@ -365,7 +365,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                 </div>
               </div>
             );
-          })}}
+          })}
         </div>
       ) : (
         <div className="text-center py-20 bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl border-2 border-dashed border-slate-300">
