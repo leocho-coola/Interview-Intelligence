@@ -172,7 +172,9 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
               </div>
               <div>
                 <h3 className="text-2xl font-black tracking-tight">오늘의 면접 일정</h3>
-                <p className="text-xs text-indigo-200 font-semibold mt-1">Google Calendar 연동</p>
+                <p className="text-xs text-indigo-200 font-semibold mt-1">
+                  {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} · Google Calendar 연동
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -208,7 +210,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 
           {/* 캘린더 일정 표시 */}
           {isLoggedIn && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {calendarEvents.length > 0 ? (
                 calendarEvents.map((event) => {
                   const eventTime = new Date(event.start);
@@ -216,22 +218,22 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                     <div 
                       key={event.id}
                       onClick={() => handleEventClick(event)}
-                      className="group bg-white/10 backdrop-blur-sm border border-white/20 p-5 rounded-2xl hover:bg-gradient-to-br hover:from-indigo-500/30 hover:to-violet-500/30 hover:border-white/40 transition-all cursor-pointer hover:scale-105 hover:shadow-xl"
+                      className="group bg-white/10 backdrop-blur-sm border border-white/20 p-4 rounded-xl hover:bg-gradient-to-br hover:from-indigo-500/30 hover:to-violet-500/30 hover:border-white/40 transition-all cursor-pointer hover:scale-105 hover:shadow-xl"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm">
-                          <Clock className="w-4 h-4 flex-shrink-0" />
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-1.5 text-indigo-300 font-bold text-xs">
+                          <Clock className="w-3.5 h-3.5 flex-shrink-0" />
                           {eventTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })}
                         </div>
-                        <span className="bg-gradient-to-r from-emerald-400 to-green-400 text-slate-900 text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0">📅 일정</span>
+                        <span className="bg-gradient-to-r from-emerald-400 to-green-400 text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0">📅 TODAY</span>
                       </div>
-                      <h4 className="text-lg font-black text-white group-hover:text-indigo-200 transition-colors mb-2 break-words">{event.summary}</h4>
+                      <h4 className="text-sm font-bold text-white group-hover:text-indigo-200 transition-colors mb-1.5 break-words line-clamp-2">{event.summary}</h4>
                       {event.description && (
-                        <p className="text-sm text-slate-300 font-medium line-clamp-2 mb-3 break-words">{event.description}</p>
+                        <p className="text-xs text-slate-300 font-medium line-clamp-1 mb-2 break-words">{event.description}</p>
                       )}
-                      <div className="flex items-center gap-2 text-sm text-indigo-200 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                        <PlayCircle className="w-5 h-5" />
-                        <span>면접 시작하기</span>
+                      <div className="flex items-center gap-1.5 text-xs text-indigo-200 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                        <PlayCircle className="w-4 h-4" />
+                        <span>면접 시작</span>
                       </div>
                     </div>
                   );
@@ -283,33 +285,33 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 
       {/* Candidates Grid */}
       {sortedCandidates.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {sortedCandidates.map(candidate => {
             const isToday = candidate.scheduledTime && formatDate(candidate.scheduledTime) === '오늘';
             
             return (
               <div 
                 key={candidate.id} 
-                className={`group bg-white rounded-2xl border transition-all p-5 flex items-start gap-4 ${
+                className={`group bg-white rounded-xl border transition-all p-3 flex items-center gap-3 ${
                   isToday 
                     ? 'border-indigo-400 shadow-lg shadow-indigo-100/50 ring-2 ring-indigo-200' 
-                    : 'border-slate-200 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-100/50'
+                    : 'border-slate-200 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-100/50'
                 }`}
               >
                 {/* 날짜 표시 (왼쪽) */}
                 {candidate.scheduledTime && (
-                  <div className="flex-shrink-0 w-16 text-center">
-                    <div className={`text-xs font-black uppercase tracking-wider mb-1 ${
+                  <div className="flex-shrink-0 w-12 text-center">
+                    <div className={`text-[10px] font-black uppercase tracking-tight mb-0.5 ${
                       isToday ? 'text-indigo-600' : 'text-slate-400'
                     }`}>
                       {formatDate(candidate.scheduledTime)}
                     </div>
-                    <div className={`text-2xl font-black ${
+                    <div className={`text-xl font-black ${
                       isToday ? 'text-indigo-600' : 'text-slate-700'
                     }`}>
                       {new Date(candidate.scheduledTime).getDate()}
                     </div>
-                    <div className={`text-xs font-bold ${
+                    <div className={`text-[10px] font-bold ${
                       isToday ? 'text-indigo-500' : 'text-slate-500'
                     }`}>
                       {new Date(candidate.scheduledTime).toLocaleDateString('ko-KR', { month: 'short' }).replace('월', '')}월
@@ -317,53 +319,53 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                   </div>
                 )}
                 
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className={`w-14 h-14 bg-gradient-to-br rounded-xl flex items-center justify-center transition-all flex-shrink-0 ${
+                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                  <div className={`w-11 h-11 bg-gradient-to-br rounded-lg flex items-center justify-center transition-all flex-shrink-0 ${
                     isToday 
                       ? 'from-indigo-100 to-violet-100' 
                       : 'from-slate-100 to-slate-200 group-hover:from-indigo-100 group-hover:to-violet-100'
                   }`}>
-                    <FileBox className={`w-7 h-7 transition-colors ${
+                    <FileBox className={`w-5 h-5 transition-colors ${
                       isToday ? 'text-indigo-500' : 'text-slate-400 group-hover:text-indigo-500'
                     }`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2 break-words">
-                      <span className="break-words">{candidate.name}</span>
-                      {candidate.notes.length > 0 && <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse"></span>}
-                      {isToday && <span className="px-2 py-0.5 bg-indigo-500 text-white text-[10px] font-black rounded-full">TODAY</span>}
+                    <h3 className="text-sm font-bold text-slate-900 mb-0.5 flex items-center gap-1.5 break-words">
+                      <span className="break-words truncate">{candidate.name}</span>
+                      {candidate.notes.length > 0 && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0 animate-pulse"></span>}
+                      {isToday && <span className="px-1.5 py-0.5 bg-indigo-500 text-white text-[9px] font-black rounded-full flex-shrink-0">TODAY</span>}
                     </h3>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">{candidate.role}</p>
-                    <div className="flex items-center gap-2 flex-wrap">
-                       <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-bold">면접 {candidate.notes.length}회</span>
+                    <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">{candidate.role}</p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                       <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold">면접 {candidate.notes.length}회</span>
                        {candidate.scheduledTime && (
-                         <span className="text-xs text-indigo-600 font-bold flex items-center gap-1">
-                           <Clock className="w-3.5 h-3.5" /> {formatTime(candidate.scheduledTime)}
+                         <span className="text-[10px] text-indigo-600 font-bold flex items-center gap-0.5">
+                           <Clock className="w-3 h-3" /> {formatTime(candidate.scheduledTime)}
                          </span>
                        )}
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex gap-2 flex-shrink-0">
+                <div className="flex gap-1.5 flex-shrink-0">
                   <button 
                     onClick={() => onStartInterview(candidate.id)}
-                    className="bg-gradient-to-r from-slate-900 to-slate-800 hover:from-indigo-600 hover:to-violet-600 text-white h-12 px-6 rounded-xl text-sm font-black transition-all flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105"
+                    className="bg-gradient-to-r from-slate-900 to-slate-800 hover:from-indigo-600 hover:to-violet-600 text-white h-9 px-4 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-md hover:shadow-lg hover:scale-105"
                   >
-                    면접 시작 <ChevronRight className="w-4 h-4" />
+                    면접 시작 <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                   <button 
                     onClick={() => onViewConsolidation(candidate.id)}
                     disabled={candidate.notes.length === 0}
-                    className="bg-white border-2 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 h-12 w-12 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 disabled:hover:bg-white disabled:hover:border-slate-200 hover:scale-105"
+                    className="bg-white border-2 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 h-9 w-9 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 disabled:hover:bg-white disabled:hover:border-slate-200 hover:scale-105"
                     title="통합 결과 보기"
                   >
-                    <Eye className="w-5 h-5 text-slate-600" />
+                    <Eye className="w-4 h-4 text-slate-600" />
                   </button>
                 </div>
               </div>
             );
-          })}
+          })}}
         </div>
       ) : (
         <div className="text-center py-20 bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl border-2 border-dashed border-slate-300">
