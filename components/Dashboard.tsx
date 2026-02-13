@@ -312,44 +312,41 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 
       {/* Today's Interviews - REMOVED (duplicate with calendar widget) */}
 
-      {/* Past Interviews */}
+      {/* All Interview Records */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-slate-600 flex items-center gap-2 px-2">
-          <div className="w-2 h-2 rounded-full bg-slate-400"></div>
-          과거 면접 기록
+          <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
+          전체 면접 기록
         </h3>
         <div className="space-y-2">
-        {(() => {
-          const pastInterviews = sortedCandidates.filter(candidate => 
-            !candidate.scheduledTime || formatDate(candidate.scheduledTime) !== '오늘'
-          );
-          
-          console.log('📊 전체 후보자:', sortedCandidates.length);
-          console.log('📊 과거 면접:', pastInterviews.length);
-          console.log('📊 후보자 목록:', sortedCandidates.map(c => ({
-            name: c.name,
-            scheduledTime: c.scheduledTime,
-            dateLabel: formatDate(c.scheduledTime)
-          })));
-          
-          return pastInterviews.map(candidate => {
-            const isToday = false;
+        {sortedCandidates.map(candidate => {
+            const isToday = formatDate(candidate.scheduledTime) === '오늘';
             
             return (
               <div 
                 key={candidate.id} 
-                className="group bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-100/50 transition-all p-3 flex items-center gap-3"
+                className={`group bg-white rounded-xl border transition-all p-3 flex items-center gap-3 ${
+                  isToday 
+                    ? 'border-indigo-300 shadow-md shadow-indigo-100/50 ring-2 ring-indigo-100' 
+                    : 'border-slate-200 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-100/50'
+                }`}
               >
                 {/* 날짜 표시 (왼쪽) */}
                 {candidate.scheduledTime && (
                   <div className="flex-shrink-0 w-12 text-center">
-                    <div className="text-[10px] font-black uppercase tracking-tight mb-0.5 text-slate-400">
+                    <div className={`text-[10px] font-black uppercase tracking-tight mb-0.5 ${
+                      isToday ? 'text-indigo-600' : 'text-slate-400'
+                    }`}>
                       {formatDate(candidate.scheduledTime)}
                     </div>
-                    <div className="text-xl font-black text-slate-700">
+                    <div className={`text-xl font-black ${
+                      isToday ? 'text-indigo-700' : 'text-slate-700'
+                    }`}>
                       {new Date(candidate.scheduledTime).getDate()}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-500">
+                    <div className={`text-[10px] font-bold ${
+                      isToday ? 'text-indigo-500' : 'text-slate-500'
+                    }`}>
                       {new Date(candidate.scheduledTime).toLocaleDateString('ko-KR', { month: 'short' }).replace('월', '')}월
                     </div>
                   </div>
@@ -394,8 +391,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                 </div>
               </div>
             );
-          });
-        })()}
+          })}
         </div>
       </div>
 
