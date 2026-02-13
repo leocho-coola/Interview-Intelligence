@@ -319,9 +319,20 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
           과거 면접 기록
         </h3>
         <div className="space-y-2">
-        {sortedCandidates
-          .filter(candidate => !candidate.scheduledTime || formatDate(candidate.scheduledTime) !== '오늘')
-          .map(candidate => {
+        {(() => {
+          const pastInterviews = sortedCandidates.filter(candidate => 
+            !candidate.scheduledTime || formatDate(candidate.scheduledTime) !== '오늘'
+          );
+          
+          console.log('📊 전체 후보자:', sortedCandidates.length);
+          console.log('📊 과거 면접:', pastInterviews.length);
+          console.log('📊 후보자 목록:', sortedCandidates.map(c => ({
+            name: c.name,
+            scheduledTime: c.scheduledTime,
+            dateLabel: formatDate(c.scheduledTime)
+          })));
+          
+          return pastInterviews.map(candidate => {
             const isToday = false;
             
             return (
@@ -383,7 +394,8 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                 </div>
               </div>
             );
-          })}
+          });
+        })()}
         </div>
       </div>
 
