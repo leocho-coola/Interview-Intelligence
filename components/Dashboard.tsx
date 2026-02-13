@@ -366,19 +366,6 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
           })}
         </div>
       ) : (
-                <button 
-                  onClick={() => onViewConsolidation(candidate.id)}
-                  disabled={candidate.notes.length === 0}
-                  className="bg-white border-2 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 h-12 w-12 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 disabled:hover:bg-white disabled:hover:border-slate-200 hover:scale-105"
-                  title="통합 결과 보기"
-                >
-                  <Eye className="w-5 h-5 text-slate-600" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
         <div className="text-center py-20 bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl border-2 border-dashed border-slate-300">
           <div className="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg">
             <Users className="w-10 h-10 text-slate-300" />
