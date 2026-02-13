@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Candidate, 
   Interviewer, 
@@ -27,7 +27,8 @@ import {
   ExternalLink,
   Maximize2,
   Minimize2,
-  Layers
+  Layers,
+  Clock
 } from 'lucide-react';
 
 interface InterviewSessionProps {
@@ -43,13 +44,53 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
   onSave, 
   onCancel 
 }) => {
-  const [selectedQuestions, setSelectedQuestions] = useState<Answer[]>([]);
-  const [overallPros, setOverallPros] = useState('');
-  const [overallCons, setOverallCons] = useState('');
+  // 임시저장 키 생성
+  const draftKey = `interview_draft_${candidate.id}`;
+  
+  // 임시저장된 데이터 로드
+  const loadDraft = () => {
+    const saved = localStorage.getItem(draftKey);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('임시저장 로드 실패:', e);
+        return null;
+      }
+    }
+    return null;
+  };
+  
+  const draft = loadDraft();
+  
+  const [selectedQuestions, setSelectedQuestions] = useState<Answer[]>(draft?.selectedQuestions || []);
+  const [overallPros, setOverallPros] = useState(draft?.overallPros || '');
+  const [overallCons, setOverallCons] = useState(draft?.overallCons || '');
   const [customQuestion, setCustomQuestion] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [showResume, setShowResume] = useState(true);
-  const [selectedStage, setSelectedStage] = useState<InterviewStage>(InterviewStage.FIRST_TECHNICAL);
+  const [selectedStage, setSelectedStage] = useState<InterviewStage>(draft?.selectedStage || InterviewStage.FIRST_TECHNICAL);
+  const [lastSaved, setLastSaved] = useState<Date | null>(draft ? new Date(draft.timestamp) : null);
+  
+  // 자동 임시저장 (5초마다)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (selectedQuestions.length > 0 || overallPros || overallCons) {
+        const draftData = {
+          selectedQuestions,
+          overallPros,
+          overallCons,
+          selectedStage,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(draftKey, JSON.stringify(draftData));
+        setLastSaved(new Date());
+        console.log('✅ 자동 임시저장 완료');
+      }
+    }, 5000); // 5초마다 저장
+    
+    return () => clearInterval(interval);
+  }, [selectedQuestions, overallPros, overallCons, selectedStage, draftKey]);
   
   // localStorage에서 커스텀 질문 Pool 로드
   const [questionPool, setQuestionPool] = useState<Question[]>(() => {
@@ -121,6 +162,10 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
       timestamp: Date.now(),
       stage: selectedStage,
     };
+    
+    // 임시저장 데이터 삭제
+    localStorage.removeItem(draftKey);
+    
     onSave(note);
   };
 
@@ -172,6 +217,13 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
         </div>
         
         <div className="flex gap-3">
+          {/* 임시저장 상태 표시 */}
+          {lastSaved && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs font-bold">
+              <Clock className="w-4 h-4" />
+              임시저장됨 {lastSaved.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+          )}
           <button 
             onClick={() => setShowResume(!showResume)}
             className={`hidden xl:flex items-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border ${showResume ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600'}`}
