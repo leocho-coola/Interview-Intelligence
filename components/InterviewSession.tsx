@@ -180,10 +180,10 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 h-[calc(100vh-40px)] animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden px-4">
+    <div className="flex flex-col gap-4 h-[calc(100vh-40px)] animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden">
       
-      {/* Header Info - 전체 너비 확장 */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between shadow-sm shrink-0">
+      {/* Header Info - 전체 화면 너비 */}
+      <div className="bg-white border-b border-slate-200 p-5 flex items-center justify-between shadow-sm shrink-0">
         <div className="flex items-center gap-5">
           <button 
             onClick={onCancel}
@@ -240,7 +240,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
         </div>
       </div>
 
-      <div className="flex gap-4 flex-1 overflow-hidden">
+      <div className="flex gap-4 flex-1 overflow-hidden px-4">
         {/* Left Panel: Question Pool - 항상 표시 */}
         <div className="w-80 flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div className="p-6 border-b border-slate-100 bg-slate-50/50">
