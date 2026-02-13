@@ -179,7 +179,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
               <div>
                 <h3 className="text-2xl font-black tracking-tight">오늘의 면접 일정</h3>
                 <p className="text-xs text-indigo-200 font-semibold mt-1">
-                  {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} · Google Calendar 연동
+                  {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })} · Google Calendar 연동 (최근 2주)
                 </p>
               </div>
             </div>
