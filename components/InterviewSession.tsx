@@ -69,7 +69,6 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
   const [customQuestion, setCustomQuestion] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [showResume, setShowResume] = useState(true);
-  const [showQuestionPool, setShowQuestionPool] = useState(false); // 질문 Pool 접기 상태
   const [selectedStage, setSelectedStage] = useState<InterviewStage>(draft?.selectedStage || InterviewStage.FIRST_TECHNICAL);
   const [lastSaved, setLastSaved] = useState<Date | null>(draft ? new Date(draft.timestamp) : null);
   
@@ -181,10 +180,10 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-6 h-[calc(100vh-80px)] md:h-[calc(100vh-120px)] animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden">
+    <div className="flex flex-col gap-4 h-[calc(100vh-40px)] animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden px-4">
       
-      {/* Header Info */}
-      <div className="bg-white rounded-[32px] border border-slate-200 p-6 flex items-center justify-between shadow-sm shrink-0">
+      {/* Header Info - 전체 너비 확장 */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between shadow-sm shrink-0">
         <div className="flex items-center gap-5">
           <button 
             onClick={onCancel}
@@ -218,14 +217,6 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
         </div>
         
         <div className="flex gap-3">
-          {/* 질문 Pool 토글 버튼 */}
-          <button 
-            onClick={() => setShowQuestionPool(!showQuestionPool)}
-            className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border ${showQuestionPool ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600'}`}
-          >
-            <HelpCircle className="w-5 h-5" />
-            {showQuestionPool ? '질문 Pool 닫기' : '질문 Pool 열기'}
-          </button>
           {/* 임시저장 상태 표시 */}
           {lastSaved && (
             <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs font-bold">
@@ -249,10 +240,9 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
         </div>
       </div>
 
-      <div className="flex gap-6 flex-1 overflow-hidden">
-        {/* Left Panel: Question Pool - 접을 수 있는 사이드바 */}
-        {showQuestionPool && (
-          <div className="w-80 flex flex-col bg-white rounded-[32px] border border-slate-200 overflow-hidden shadow-sm transition-all">
+      <div className="flex gap-4 flex-1 overflow-hidden">
+        {/* Left Panel: Question Pool - 항상 표시 */}
+        <div className="w-80 flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div className="p-6 border-b border-slate-100 bg-slate-50/50">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold flex items-center gap-2">
@@ -319,14 +309,13 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
                 </button>
               </div>
             </div>
-          </div>
-        )}
+        </div>
 
         {/* Middle Panel: Active Interview Board */}
         <div 
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          className={`flex-1 flex flex-col bg-white rounded-[32px] border-2 border-dashed ${selectedQuestions.length === 0 ? 'border-indigo-100' : 'border-slate-100'} overflow-hidden shadow-inner relative transition-all`}
+          className={`flex-1 flex flex-col bg-white rounded-2xl border-2 border-dashed ${selectedQuestions.length === 0 ? 'border-indigo-100' : 'border-slate-100'} overflow-hidden shadow-inner relative transition-all`}
         >
           {selectedQuestions.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-12 text-center">
@@ -405,9 +394,9 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
           )}
         </div>
 
-        {/* Right Panel: Resume & Portfolio Viewer - 더 넓은 너비 */}
+        {/* Right Panel: Resume & Portfolio Viewer - 조건부 표시 */}
         {showResume && (
-          <div className="flex flex-col w-[600px] bg-white rounded-[32px] border border-slate-200 overflow-hidden shadow-2xl animate-in slide-in-from-right-4 duration-300">
+          <div className="flex flex-col w-[500px] bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xl animate-in slide-in-from-right-4 duration-300">
             <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="bg-slate-900 p-2 rounded-xl">
