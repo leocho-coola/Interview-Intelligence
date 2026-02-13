@@ -69,6 +69,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
   const [customQuestion, setCustomQuestion] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [showResume, setShowResume] = useState(true);
+  const [showQuestionPool, setShowQuestionPool] = useState(false); // 질문 Pool 접기 상태
   const [selectedStage, setSelectedStage] = useState<InterviewStage>(draft?.selectedStage || InterviewStage.FIRST_TECHNICAL);
   const [lastSaved, setLastSaved] = useState<Date | null>(draft ? new Date(draft.timestamp) : null);
   
@@ -217,6 +218,14 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
         </div>
         
         <div className="flex gap-3">
+          {/* 질문 Pool 토글 버튼 */}
+          <button 
+            onClick={() => setShowQuestionPool(!showQuestionPool)}
+            className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border ${showQuestionPool ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600'}`}
+          >
+            <HelpCircle className="w-5 h-5" />
+            {showQuestionPool ? '질문 Pool 닫기' : '질문 Pool 열기'}
+          </button>
           {/* 임시저장 상태 표시 */}
           {lastSaved && (
             <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs font-bold">
@@ -226,7 +235,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
           )}
           <button 
             onClick={() => setShowResume(!showResume)}
-            className={`hidden xl:flex items-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border ${showResume ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600'}`}
+            className={`flex items-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all border ${showResume ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-slate-200 text-slate-600'}`}
           >
             {showResume ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
             {showResume ? '이력서 닫기' : '이력서 보기'}
@@ -241,75 +250,77 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
       </div>
 
       <div className="flex gap-6 flex-1 overflow-hidden">
-        {/* Left Panel: Question Pool */}
-        <div className={`transition-all duration-300 ${showResume ? 'w-80' : 'w-96'} hidden lg:flex flex-col bg-white rounded-[32px] border border-slate-200 overflow-hidden shadow-sm`}>
-          <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-indigo-500" /> 질문 Pool
-              </h3>
-              <div className="relative">
-                <select 
-                  value={activeCategory}
-                  onChange={(e) => setActiveCategory(e.target.value)}
-                  className="pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold appearance-none outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
-                >
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat === 'All' ? '전체 직무' : cat}</option>
-                  ))}
-                </select>
-                <ChevronDown className="w-3 h-3 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-            </div>
-            <p className="text-[11px] text-slate-500 leading-tight">질문을 드래그하거나 [+] 클릭</p>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-            {filteredQuestions.map(q => (
-              <div 
-                key={q.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, q)}
-                className="p-3 bg-white border border-slate-100 rounded-2xl cursor-grab hover:border-indigo-300 hover:shadow-md transition-all active:cursor-grabbing group relative border-l-4 border-l-slate-200 hover:border-l-indigo-500"
-              >
-                <div className="flex items-start gap-2">
-                  <GripVertical className="w-3 h-3 text-slate-200 mt-1 shrink-0 group-hover:text-indigo-400" />
-                  <div>
-                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase mb-1 inline-block tracking-widest border ${getCategoryColor(q.category)}`}>
-                      {q.category}
-                    </span>
-                    <p className="text-xs font-bold text-slate-700 leading-snug">{q.text}</p>
-                  </div>
+        {/* Left Panel: Question Pool - 접을 수 있는 사이드바 */}
+        {showQuestionPool && (
+          <div className="w-80 flex flex-col bg-white rounded-[32px] border border-slate-200 overflow-hidden shadow-sm transition-all">
+            <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <HelpCircle className="w-5 h-5 text-indigo-500" /> 질문 Pool
+                </h3>
+                <div className="relative">
+                  <select 
+                    value={activeCategory}
+                    onChange={(e) => setActiveCategory(e.target.value)}
+                    className="pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-bold appearance-none outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
+                  >
+                    {categories.map(cat => (
+                      <option key={cat} value={cat}>{cat === 'All' ? '전체 직무' : cat}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-3 h-3 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
-                <button 
-                  onClick={() => addQuestionToBoard(q.id, q.text)}
-                  className="absolute right-2 bottom-2 bg-indigo-50 p-1 rounded-lg text-indigo-600 opacity-0 group-hover:opacity-100 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+              </div>
+              <p className="text-[11px] text-slate-500 leading-tight">질문을 드래그하거나 [+] 클릭</p>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+              {filteredQuestions.map(q => (
+                <div 
+                  key={q.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, q)}
+                  className="p-3 bg-white border border-slate-100 rounded-2xl cursor-grab hover:border-indigo-300 hover:shadow-md transition-all active:cursor-grabbing group relative border-l-4 border-l-slate-200 hover:border-l-indigo-500"
                 >
-                  <Plus className="w-3 h-3" />
+                  <div className="flex items-start gap-2">
+                    <GripVertical className="w-3 h-3 text-slate-200 mt-1 shrink-0 group-hover:text-indigo-400" />
+                    <div>
+                      <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase mb-1 inline-block tracking-widest border ${getCategoryColor(q.category)}`}>
+                        {q.category}
+                      </span>
+                      <p className="text-xs font-bold text-slate-700 leading-snug">{q.text}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => addQuestionToBoard(q.id, q.text)}
+                    className="absolute right-2 bottom-2 bg-indigo-50 p-1 rounded-lg text-indigo-600 opacity-0 group-hover:opacity-100 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+              <div className="relative group">
+                <input 
+                  type="text" 
+                  value={customQuestion}
+                  onChange={(e) => setCustomQuestion(e.target.value)}
+                  placeholder="직접 입력..."
+                  className="w-full pl-4 pr-10 py-3 rounded-xl border border-slate-200 text-xs font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner"
+                  onKeyPress={(e) => e.key === 'Enter' && addCustomQuestion()}
+                />
+                <button 
+                  onClick={addCustomQuestion}
+                  className="absolute right-1.5 top-1.5 p-1.5 bg-slate-900 text-white rounded-lg hover:bg-indigo-600 transition-all"
+                >
+                  <PlusCircle className="w-5 h-5" />
                 </button>
               </div>
-            ))}
-          </div>
-
-          <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-            <div className="relative group">
-              <input 
-                type="text" 
-                value={customQuestion}
-                onChange={(e) => setCustomQuestion(e.target.value)}
-                placeholder="직접 입력..."
-                className="w-full pl-4 pr-10 py-3 rounded-xl border border-slate-200 text-xs font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner"
-                onKeyPress={(e) => e.key === 'Enter' && addCustomQuestion()}
-              />
-              <button 
-                onClick={addCustomQuestion}
-                className="absolute right-1.5 top-1.5 p-1.5 bg-slate-900 text-white rounded-lg hover:bg-indigo-600 transition-all"
-              >
-                <PlusCircle className="w-5 h-5" />
-              </button>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Middle Panel: Active Interview Board */}
         <div 
@@ -394,9 +405,9 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
           )}
         </div>
 
-        {/* Right Panel: Resume & Portfolio Viewer */}
+        {/* Right Panel: Resume & Portfolio Viewer - 더 넓은 너비 */}
         {showResume && (
-          <div className="hidden xl:flex flex-col w-[45%] bg-white rounded-[32px] border border-slate-200 overflow-hidden shadow-2xl animate-in slide-in-from-right-4 duration-300">
+          <div className="flex flex-col w-[600px] bg-white rounded-[32px] border border-slate-200 overflow-hidden shadow-2xl animate-in slide-in-from-right-4 duration-300">
             <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="bg-slate-900 p-2 rounded-xl">
