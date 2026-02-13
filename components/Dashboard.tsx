@@ -435,10 +435,3 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 };
 
 export default Dashboard;
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default Dashboard;
