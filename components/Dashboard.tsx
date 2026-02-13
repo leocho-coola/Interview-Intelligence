@@ -71,14 +71,14 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
       const events = await getTodayEvents();
       const interviewEvents = filterInterviewEvents(events);
       
-      // ✅ 시간순 정렬 (오름차순)
+      // ✅ 시간순 정렬 (내림차순 - 최신이 위로)
       const sortedEvents = interviewEvents.sort((a, b) => {
         const aTime = new Date(a.start).getTime();
         const bTime = new Date(b.start).getTime();
-        return aTime - bTime; // 빠른 시간 → 늦은 시간
+        return bTime - aTime; // 늦은 시간 → 빠른 시간 (최신순)
       });
       
-      console.log(`📅 캘린더 이벤트 로드: ${sortedEvents.length}개 표시 (시간순 정렬)`);
+      console.log(`📅 캘린더 이벤트 로드: ${sortedEvents.length}개 표시 (최신순 정렬)`);
       
       // 캘린더 위젯에 모든 일정 표시
       setCalendarEvents(sortedEvents);
