@@ -313,16 +313,15 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
       {/* Today's Interviews - REMOVED (duplicate with calendar widget) */}
 
       {/* Past Interviews */}
-      {sortedCandidates.filter(c => !c.scheduledTime || formatDate(c.scheduledTime) !== '오늘').length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-bold text-slate-600 flex items-center gap-2 px-2">
-            <div className="w-2 h-2 rounded-full bg-slate-400"></div>
-            과거 면접 기록
-          </h3>
-          <div className="space-y-2">
-          {sortedCandidates
-            .filter(candidate => !candidate.scheduledTime || formatDate(candidate.scheduledTime) !== '오늘')
-            .map(candidate => {
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold text-slate-600 flex items-center gap-2 px-2">
+          <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+          과거 면접 기록
+        </h3>
+        <div className="space-y-2">
+        {sortedCandidates
+          .filter(candidate => !candidate.scheduledTime || formatDate(candidate.scheduledTime) !== '오늘')
+          .map(candidate => {
             const isToday = false;
             
             return (
@@ -385,9 +384,8 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
               </div>
             );
           })}
-          </div>
         </div>
-      )}
+      </div>
 
       {/* Empty State */}
       {sortedCandidates.length === 0 && (
