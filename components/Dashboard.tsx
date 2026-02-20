@@ -327,11 +327,11 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 
       {/* Today's Interviews - REMOVED (duplicate with calendar widget) */}
 
-      {/* All Interview Records */}
+      {/* This Week's Interview Records */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-slate-600 flex items-center gap-2 px-2">
           <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
-          전체 면접 기록
+          이번주 전체 면접 기록
         </h3>
         <div className="space-y-2">
         {sortedCandidates.map(candidate => {
@@ -410,8 +410,8 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
         </div>
       </div>
 
-      {/* Empty State */}
-      {sortedCandidates.length === 0 && (
+      {/* Empty State - 캘린더 이벤트도 없고 후보자도 없을 때만 표시 */}
+      {sortedCandidates.length === 0 && calendarEvents.length === 0 && (
         <div className="text-center py-20 bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl border-2 border-dashed border-slate-300">
           <div className="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg">
             <Users className="w-10 h-10 text-slate-300" />
