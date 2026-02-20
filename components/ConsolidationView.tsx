@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Candidate, InterviewNote, InterviewStage } from '../types';
+import { Candidate, InterviewNote, InterviewStage, InterviewResult } from '../types';
 import { 
   ArrowLeft, 
   MessageSquare, 
@@ -53,6 +53,45 @@ const ConsolidationView: React.FC<ConsolidationViewProps> = ({ candidate, onBack
       case InterviewStage.COFFEE_CHAT: return 'bg-slate-100 text-slate-700 border-slate-200';
       default: return 'bg-indigo-100 text-indigo-700 border-indigo-200';
     }
+  };
+  
+  // 🆕 면접 결과 아이콘 및 색상
+  const getResultBadge = (result?: InterviewResult) => {
+    if (result === InterviewResult.PASS) {
+      return <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200">
+        <ThumbsUp className="w-3 h-3" /> 합격
+      </span>;
+    }
+    if (result === InterviewResult.FAIL) {
+      return <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 bg-red-100 text-red-700 rounded-full border border-red-200">
+        <AlertCircle className="w-3 h-3" /> 불합격
+      </span>;
+    }
+    return <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
+      <Clock className="w-3 h-3" /> 평가 대기
+    </span>;
+  };
+
+  // 🆕 다음 단계 자동 제안
+  const getNextStage = () => {
+    if (candidate.notes.length === 0) return InterviewStage.FIRST_TECHNICAL;
+    
+    const sortedNotes = [...candidate.notes].sort((a, b) => b.timestamp - a.timestamp);
+    const latestNote = sortedNotes[0];
+    
+    // 최근 면접이 불합격이면 다음 단계 없음
+    if (latestNote.result === InterviewResult.FAIL) {
+      return null;
+    }
+    
+    // 합격인 경우 다음 단계 제안
+    if (latestNote.result === InterviewResult.PASS) {
+      if (latestNote.stage === InterviewStage.FIRST_TECHNICAL) return InterviewStage.SECOND_CULTURE;
+      if (latestNote.stage === InterviewStage.SECOND_CULTURE) return InterviewStage.FINAL;
+      if (latestNote.stage === InterviewStage.FINAL) return null; // 최종 합격
+    }
+    
+    return null;
   };
 
   const activeNote = candidate.notes.find(n => n.id === activeNoteId);
@@ -139,6 +178,91 @@ const ConsolidationView: React.FC<ConsolidationViewProps> = ({ candidate, onBack
                   </div>
                 </div>
               )}
+            </div>
+          </section>
+
+          {/* 🆕 면접 단계별 타임라인 */}
+          <section className="bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-black text-slate-900">면접 진행 타임라인</h3>
+              {getNextStage() && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full border border-indigo-200">
+                  <ChevronRight className="w-4 h-4 text-indigo-600" />
+                  <span className="text-xs font-bold text-indigo-700">다음 단계: {getNextStage()}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-4">
+              {[...candidate.notes]
+                .sort((a, b) => a.timestamp - b.timestamp) // 시간순 정렬 (과거→현재)
+                .map((note, index, array) => (
+                  <div key={note.id} className="relative pl-8">
+                    {/* 타임라인 선 */}
+                    {index < array.length - 1 && (
+                      <div className="absolute left-[15px] top-8 bottom-0 w-0.5 bg-slate-200"></div>
+                    )}
+                    
+                    {/* 타임라인 점 */}
+                    <div className={`absolute left-0 top-2 w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-lg ${
+                      note.result === InterviewResult.PASS ? 'bg-emerald-500' :
+                      note.result === InterviewResult.FAIL ? 'bg-red-500' :
+                      'bg-slate-400'
+                    }`}>
+                      {note.result === InterviewResult.PASS ? (
+                        <ThumbsUp className="w-4 h-4 text-white" />
+                      ) : note.result === InterviewResult.FAIL ? (
+                        <AlertCircle className="w-4 h-4 text-white" />
+                      ) : (
+                        <Clock className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                    
+                    {/* 타임라인 콘텐츠 */}
+                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-xs font-bold px-3 py-1 rounded-full border ${getStageColor(note.stage)}`}>
+                              {note.stage}
+                            </span>
+                            {getResultBadge(note.result)}
+                          </div>
+                          <p className="text-xs text-slate-500 font-semibold">
+                            {new Date(note.timestamp).toLocaleString('ko-KR', { 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-2">
+                          <User className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-slate-700">면접관: {note.interviewer.name}</p>
+                            <p className="text-[10px] text-slate-500">{note.interviewer.department}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3 mt-3">
+                          <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100">
+                            <p className="text-[10px] font-black text-emerald-700 uppercase mb-1">장점</p>
+                            <p className="text-xs text-emerald-900 line-clamp-2">{note.overallPros || '기록 없음'}</p>
+                          </div>
+                          <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
+                            <p className="text-[10px] font-black text-amber-700 uppercase mb-1">단점</p>
+                            <p className="text-xs text-amber-900 line-clamp-2">{note.overallCons || '기록 없음'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
             </div>
           </section>
 

@@ -6,7 +6,8 @@ import {
   Question, 
   Answer, 
   InterviewNote,
-  InterviewStage
+  InterviewStage,
+  InterviewResult
 } from '../types';
 import { QUESTION_POOL } from '../constants';
 import { 
@@ -69,7 +70,8 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
   const [customQuestion, setCustomQuestion] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [showResume, setShowResume] = useState(true);
-  const [selectedStage, setSelectedStage] = useState<InterviewStage>(draft?.selectedStage || InterviewStage.FIRST_TECHNICAL);
+  const [selectedStage, setSelectedStage] = useState<InterviewStage>(draft?.selectedStage || candidate.currentStage || InterviewStage.FIRST_TECHNICAL);
+  const [interviewResult, setInterviewResult] = useState<InterviewResult>(draft?.interviewResult || InterviewResult.PENDING); // 🆕 면접 결과
   const [lastSaved, setLastSaved] = useState<Date | null>(draft ? new Date(draft.timestamp) : null);
   
   // 자동 임시저장 (5초마다)
@@ -81,6 +83,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
           overallPros,
           overallCons,
           selectedStage,
+          interviewResult,
           timestamp: Date.now()
         };
         localStorage.setItem(draftKey, JSON.stringify(draftData));
@@ -90,7 +93,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
     }, 5000); // 5초마다 저장
     
     return () => clearInterval(interval);
-  }, [selectedQuestions, overallPros, overallCons, selectedStage, draftKey]);
+  }, [selectedQuestions, overallPros, overallCons, selectedStage, interviewResult, draftKey]);
   
   // localStorage에서 커스텀 질문 Pool 로드
   const [questionPool, setQuestionPool] = useState<Question[]>(() => {
@@ -161,6 +164,7 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
       overallCons,
       timestamp: Date.now(),
       stage: selectedStage,
+      result: interviewResult, // 🆕 면접 결과 추가
     };
     
     // 임시저장 데이터 삭제
@@ -209,6 +213,42 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
                        <option key={s} value={s}>{s}</option>
                      ))}
                    </select>
+                </div>
+                {/* 🆕 합격/불합격 선택 */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setInterviewResult(InterviewResult.PASS)}
+                    className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black transition-all ${
+                      interviewResult === InterviewResult.PASS
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200'
+                        : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200'
+                    }`}
+                  >
+                    <ThumbsUp className="w-3 h-3" />
+                    합격
+                  </button>
+                  <button
+                    onClick={() => setInterviewResult(InterviewResult.FAIL)}
+                    className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black transition-all ${
+                      interviewResult === InterviewResult.FAIL
+                        ? 'bg-red-500 text-white shadow-lg shadow-red-200'
+                        : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                    }`}
+                  >
+                    <AlertCircle className="w-3 h-3" />
+                    불합격
+                  </button>
+                  <button
+                    onClick={() => setInterviewResult(InterviewResult.PENDING)}
+                    className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black transition-all ${
+                      interviewResult === InterviewResult.PENDING
+                        ? 'bg-slate-500 text-white shadow-lg shadow-slate-200'
+                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    <Clock className="w-3 h-3" />
+                    평가 대기
+                  </button>
                 </div>
               </div>
               <p className="text-sm text-slate-500 font-semibold">{candidate.role}</p>

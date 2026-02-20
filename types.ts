@@ -37,6 +37,12 @@ export interface Interviewer {
   department: string;
 }
 
+export enum InterviewResult {
+  PASS = 'pass',           // 합격
+  FAIL = 'fail',           // 불합격
+  PENDING = 'pending'      // 평가 대기
+}
+
 export interface InterviewNote {
   id: string;
   candidateId: string;
@@ -46,6 +52,7 @@ export interface InterviewNote {
   overallCons: string;
   timestamp: number;
   stage: InterviewStage;
+  result?: InterviewResult; // 🆕 면접 결과 (합격/불합격/평가대기)
 }
 
 export interface Candidate {

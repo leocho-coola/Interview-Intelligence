@@ -123,6 +123,30 @@ const App: React.FC = () => {
   };
 
   const createCandidateFromEvent = (eventName: string, eventDescription: string, eventId?: string, eventStartTime?: string, stage?: InterviewStage): string => {
+    // 🆕 같은 이름의 기존 후보자 찾기
+    const existingCandidate = candidates.find(c => c.name === eventName);
+    
+    if (existingCandidate) {
+      // 기존 후보자가 있으면, 새로운 캘린더 이벤트 정보만 업데이트
+      console.log('✅ 기존 후보자 발견:', eventName, '→ 단계 업데이트:', stage);
+      
+      // 최신 면접 단계와 시간으로 업데이트
+      setCandidates(prev => prev.map(c => {
+        if (c.id === existingCandidate.id) {
+          return {
+            ...c,
+            currentStage: stage || c.currentStage,
+            scheduledTime: eventStartTime ? new Date(eventStartTime).getTime() : c.scheduledTime,
+            calendarEventId: eventId || c.calendarEventId
+          };
+        }
+        return c;
+      }));
+      
+      return existingCandidate.id;
+    }
+    
+    // 기존 후보자가 없으면 새로 생성
     const newId = `cal-${Date.now()}`;
     
     // 이벤트 시작 시간을 timestamp로 변환 (전달되지 않으면 현재 시간 사용)
