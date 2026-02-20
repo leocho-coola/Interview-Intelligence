@@ -280,11 +280,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-          )}
-        </div>
-      </main>
-    </div>
-  );
-};
-
-export default App;
