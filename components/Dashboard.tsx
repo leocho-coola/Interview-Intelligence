@@ -28,6 +28,8 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
   const [isSyncing, setIsSyncing] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLastWeek, setShowLastWeek] = useState(false);
+  const [showNextWeek, setShowNextWeek] = useState(false);
 
   const handleEventClick = (event: CalendarEvent) => {
     if (onCreateCandidateFromEvent) {
@@ -119,34 +121,94 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
     setCalendarEvents([]);
   };
 
-  // 오늘 날짜를 기준으로 정렬 (오늘 면접 대상자가 상단에)
-  const sortedCandidates = useMemo(() => {
+  // 🆕 주차 계산 함수 (월요일 시작)
+  const getWeekKey = (date: Date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    
+    // 월요일을 주의 시작으로 설정
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // 일요일이면 -6, 아니면 월요일로 조정
+    const monday = new Date(d.setDate(diff));
+    
+    return `${monday.getFullYear()}-W${Math.ceil((monday.getDate() + 6) / 7)}-${monday.getMonth()}`;
+  };
+
+  // 🆕 주차 라벨 생성
+  const getWeekLabel = (weekKey: string, candidates: Candidate[]) => {
+    if (candidates.length === 0) return '';
+    
+    const firstDate = new Date(candidates[0].scheduledTime || Date.now());
+    const day = firstDate.getDay();
+    const diff = firstDate.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(firstDate.setDate(diff));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayTimestamp = today.getTime();
+    const todayMonday = new Date(today);
+    const todayDay = today.getDay();
+    const todayDiff = today.getDate() - todayDay + (todayDay === 0 ? -6 : 1);
+    todayMonday.setDate(todayDiff);
+    todayMonday.setHours(0, 0, 0, 0);
     
-    return [...candidates].sort((a, b) => {
-      const aTime = a.scheduledTime || 0;
-      const bTime = b.scheduledTime || 0;
-      
-      const aDate = new Date(aTime);
-      aDate.setHours(0, 0, 0, 0);
-      const aIsToday = aDate.getTime() === todayTimestamp;
-      
-      const bDate = new Date(bTime);
-      bDate.setHours(0, 0, 0, 0);
-      const bIsToday = bDate.getTime() === todayTimestamp;
-      
-      // 오늘 면접이 최우선
-      if (aIsToday && !bIsToday) return -1;
-      if (!aIsToday && bIsToday) return 1;
-      
-      // 둘 다 오늘이면 시간순
-      if (aIsToday && bIsToday) return aTime - bTime;
-      
-      // 둘 다 오늘이 아니면 최신순
-      return bTime - aTime;
+    // 이번 주인지 확인
+    if (monday.getTime() === todayMonday.getTime()) {
+      return '이번 주';
+    }
+    
+    // 지난주/다음주 확인
+    const lastWeekMonday = new Date(todayMonday);
+    lastWeekMonday.setDate(todayMonday.getDate() - 7);
+    const nextWeekMonday = new Date(todayMonday);
+    nextWeekMonday.setDate(todayMonday.getDate() + 7);
+    
+    if (monday.getTime() === lastWeekMonday.getTime()) {
+      return '지난 주';
+    }
+    if (monday.getTime() === nextWeekMonday.getTime()) {
+      return '다음 주';
+    }
+    
+    // 그 외
+    return `${monday.getMonth() + 1}월 ${monday.getDate()}일 ~ ${sunday.getMonth() + 1}월 ${sunday.getDate()}일`;
+  };
+
+  // 🆕 주별로 그룹핑
+  const candidatesByWeek = useMemo(() => {
+    const groups = new Map<string, Candidate[]>();
+    
+    candidates.forEach(candidate => {
+      if (candidate.scheduledTime) {
+        const weekKey = getWeekKey(new Date(candidate.scheduledTime));
+        if (!groups.has(weekKey)) {
+          groups.set(weekKey, []);
+        }
+        groups.get(weekKey)!.push(candidate);
+      }
     });
+    
+    // 각 주 내에서 시간순 정렬 (최신이 위로)
+    groups.forEach(weekCandidates => {
+      weekCandidates.sort((a, b) => (b.scheduledTime || 0) - (a.scheduledTime || 0));
+    });
+    
+    // 주차별로 정렬 (최신 주가 위로)
+    return Array.from(groups.entries())
+      .sort((a, b) => {
+        const aFirstTime = a[1][0]?.scheduledTime || 0;
+        const bFirstTime = b[1][0]?.scheduledTime || 0;
+        return bFirstTime - aFirstTime;
+      })
+      .map(([weekKey, weekCandidates]) => ({
+        weekKey,
+        label: getWeekLabel(weekKey, weekCandidates),
+        candidates: weekCandidates,
+        isThisWeek: getWeekLabel(weekKey, weekCandidates) === '이번 주',
+        isLastWeek: getWeekLabel(weekKey, weekCandidates) === '지난 주',
+        isNextWeek: getWeekLabel(weekKey, weekCandidates) === '다음 주'
+      }));
   }, [candidates]);
 
   const formatTime = (ts?: number) => {
@@ -371,14 +433,61 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 
       {/* Today's Interviews - REMOVED (duplicate with calendar widget) */}
 
-      {/* This Week's Interview Records */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-bold text-slate-600 flex items-center gap-2 px-2">
-          <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
-          이번주 전체 면접 기록
-        </h3>
-        <div className="space-y-2">
-        {sortedCandidates.map(candidate => {
+      {/* Weekly Interview Records */}
+      {candidatesByWeek.map((week, weekIndex) => {
+        // 지난 주/다음 주는 토글로 제어
+        if (week.isLastWeek && !showLastWeek) {
+          return (
+            <div key={week.weekKey} className="space-y-3">
+              <button
+                onClick={() => setShowLastWeek(true)}
+                className="w-full flex items-center justify-between bg-slate-100 hover:bg-slate-200 p-4 rounded-xl transition-all border border-slate-200"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                  <h3 className="text-sm font-bold text-slate-600">{week.label} ({week.candidates.length}건)</h3>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+          );
+        }
+        
+        if (week.isNextWeek && !showNextWeek) {
+          return (
+            <div key={week.weekKey} className="space-y-3">
+              <button
+                onClick={() => setShowNextWeek(true)}
+                className="w-full flex items-center justify-between bg-slate-100 hover:bg-slate-200 p-4 rounded-xl transition-all border border-slate-200"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                  <h3 className="text-sm font-bold text-slate-600">{week.label} ({week.candidates.length}건)</h3>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-400" />
+              </button>
+            </div>
+          );
+        }
+        
+        return (
+          <div key={week.weekKey} className="space-y-3">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-sm font-bold text-slate-600 flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${week.isThisWeek ? 'bg-indigo-400' : 'bg-slate-400'}`}></div>
+                {week.label} ({week.candidates.length}건)
+              </h3>
+              {(week.isLastWeek || week.isNextWeek) && (
+                <button
+                  onClick={() => week.isLastWeek ? setShowLastWeek(false) : setShowNextWeek(false)}
+                  className="text-xs text-slate-500 hover:text-slate-700 font-semibold"
+                >
+                  접기
+                </button>
+              )}
+            </div>
+            <div className="space-y-2">
+            {week.candidates.map(candidate => {
             const isToday = formatDate(candidate.scheduledTime) === '오늘';
             
             return (
@@ -452,11 +561,13 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
               </div>
             );
           })}
+          </div>
         </div>
-      </div>
+        );
+      })}
 
       {/* Empty State - 캘린더 이벤트도 없고 후보자도 없을 때만 표시 */}
-      {sortedCandidates.length === 0 && calendarEvents.length === 0 && (
+      {candidates.length === 0 && calendarEvents.length === 0 && (
         <div className="text-center py-20 bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl border-2 border-dashed border-slate-300">
           <div className="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg">
             <Users className="w-10 h-10 text-slate-300" />
