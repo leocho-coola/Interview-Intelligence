@@ -194,21 +194,29 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
       weekCandidates.sort((a, b) => (b.scheduledTime || 0) - (a.scheduledTime || 0));
     });
     
-    // 주차별로 정렬 (최신 주가 위로)
+    // 주차별로 정렬 (이번 주 → 다음 주 → 지난 주 순서)
     return Array.from(groups.entries())
-      .sort((a, b) => {
-        const aFirstTime = a[1][0]?.scheduledTime || 0;
-        const bFirstTime = b[1][0]?.scheduledTime || 0;
-        return bFirstTime - aFirstTime;
-      })
       .map(([weekKey, weekCandidates]) => ({
         weekKey,
         label: getWeekLabel(weekKey, weekCandidates),
         candidates: weekCandidates,
         isThisWeek: getWeekLabel(weekKey, weekCandidates) === '이번 주',
         isLastWeek: getWeekLabel(weekKey, weekCandidates) === '지난 주',
-        isNextWeek: getWeekLabel(weekKey, weekCandidates) === '다음 주'
-      }));
+        isNextWeek: getWeekLabel(weekKey, weekCandidates) === '다음 주',
+        firstTime: weekCandidates[0]?.scheduledTime || 0
+      }))
+      .sort((a, b) => {
+        // 1순위: 이번 주는 항상 최상단
+        if (a.isThisWeek) return -1;
+        if (b.isThisWeek) return 1;
+        
+        // 2순위: 다음 주는 이번 주 다음
+        if (a.isNextWeek && b.isLastWeek) return -1;
+        if (a.isLastWeek && b.isNextWeek) return 1;
+        
+        // 3순위: 같은 카테고리 내에서는 시간순 (미래는 최신순, 과거는 최신순)
+        return b.firstTime - a.firstTime;
+      });
   }, [candidates]);
 
   const formatTime = (ts?: number) => {
