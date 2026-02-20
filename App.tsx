@@ -9,7 +9,7 @@ import {
   LayoutDashboard,
   TrendingUp
 } from 'lucide-react';
-import { Candidate, Interviewer, ViewState, InterviewNote, JobRole } from './types';
+import { Candidate, Interviewer, ViewState, InterviewNote, JobRole, InterviewStatus } from './types';
 import { MOCK_CANDIDATES } from './constants';
 import { exchangeCodeForToken } from './services/googleAuthService';
 import LandingPage from './components/LandingPage';
@@ -110,7 +110,11 @@ const App: React.FC = () => {
   const addInterviewNote = (candidateId: string, note: InterviewNote) => {
     setCandidates(prev => prev.map(c => {
       if (c.id === candidateId) {
-        return { ...c, notes: [...c.notes, note] };
+        return { 
+          ...c, 
+          notes: [...c.notes, note],
+          status: InterviewStatus.COMPLETED // 🆕 면접 완료 시 상태 변경
+        };
       }
       return c;
     }));
@@ -132,11 +136,12 @@ const App: React.FC = () => {
       scheduledTime: scheduledTimestamp, // 원래 면접 예정 시간 저장
       resumeUrl: '',
       portfolioUrl: eventDescription, // 이벤트 설명을 포트폴리오 URL로 사용
-      calendarEventId: eventId // 캘린더 이벤트 ID 저장 (중복 방지용)
+      calendarEventId: eventId, // 캘린더 이벤트 ID 저장 (중복 방지용)
+      status: InterviewStatus.SCHEDULED // 🆕 초기 상태는 '예정됨'
     };
     
     setCandidates(prev => [...prev, newCandidate]);
-    console.log('✅ Created candidate from calendar event:', eventName, '시간:', new Date(scheduledTimestamp).toLocaleString('ko-KR'));
+    console.log('✅ Created candidate from calendar event:', eventName, '시간:', new Date(scheduledTimestamp).toLocaleString('ko-KR'), '상태: 예정됨');
     return newId;
   };
 
@@ -227,6 +232,10 @@ const App: React.FC = () => {
             <Dashboard 
               candidates={candidates} 
               onStartInterview={(id) => {
+                // 🆕 상태를 'in_progress'로 변경
+                setCandidates(prev => prev.map(c => 
+                  c.id === id ? { ...c, status: InterviewStatus.IN_PROGRESS } : c
+                ));
                 setSelectedCandidateId(id);
                 setView('INTERVIEW');
               }}
@@ -263,6 +272,14 @@ const App: React.FC = () => {
                <h3 className="text-xl font-bold text-slate-800">그리팅에서 후보자를 선택해주세요</h3>
                <p className="text-slate-500 mt-1">면접 링크를 통해 입장하면 해당 후보자의 기록 화면이 바로 나타납니다.</p>
             </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default App;
           )}
         </div>
       </main>

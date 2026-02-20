@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Candidate } from '../types';
+import { Candidate, InterviewStatus } from '../types';
 import { getTodayEvents, filterInterviewEvents, CalendarEvent } from '../services/calendarService';
 import { initiateGoogleLogin, isAuthenticated, logout } from '../services/googleAuthService';
 import { 
@@ -79,6 +79,17 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
       });
       
       console.log(`📅 캘린더 이벤트 로드: ${sortedEvents.length}개 표시 (최신순 정렬)`);
+      
+      // 🆕 자동으로 후보자 생성 (이미 존재하지 않는 경우)
+      if (onCreateCandidateFromEvent) {
+        sortedEvents.forEach(event => {
+          const existingCandidate = candidates.find(c => c.calendarEventId === event.id);
+          if (!existingCandidate) {
+            console.log('✨ 자동 후보자 생성:', event.summary);
+            onCreateCandidateFromEvent(event.summary, event.description || '', event.id, event.start);
+          }
+        });
+      }
       
       // 캘린더 위젯에 모든 일정 표시
       setCalendarEvents(sortedEvents);
@@ -160,6 +171,39 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
     if (diffDays < -1 && diffDays >= -7) return `${Math.abs(diffDays)}일 전`;
     
     return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+  };
+
+  // 🆕 상태 뱃지 렌더링
+  const renderStatusBadge = (status?: InterviewStatus) => {
+    if (!status || status === InterviewStatus.SCHEDULED) {
+      return (
+        <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-bold">
+          📅 예정
+        </span>
+      );
+    }
+    if (status === InterviewStatus.IN_PROGRESS) {
+      return (
+        <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-md font-bold animate-pulse">
+          ⏳ 진행중
+        </span>
+      );
+    }
+    if (status === InterviewStatus.COMPLETED) {
+      return (
+        <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-md font-bold">
+          ✅ 완료
+        </span>
+      );
+    }
+    if (status === InterviewStatus.NO_SHOW) {
+      return (
+        <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-bold">
+          ❌ 불참
+        </span>
+      );
+    }
+    return null;
   };
 
   return (
@@ -378,6 +422,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                     </h3>
                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">{candidate.role}</p>
                     <div className="flex items-center gap-1.5 flex-wrap">
+                       {renderStatusBadge(candidate.status)}
                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold">면접 {candidate.notes.length}회</span>
                        {candidate.scheduledTime && (
                          <span className="text-[10px] text-slate-600 font-bold flex items-center gap-0.5">

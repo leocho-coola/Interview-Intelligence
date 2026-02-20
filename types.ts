@@ -1,3 +1,9 @@
+export enum InterviewStatus {
+  SCHEDULED = 'scheduled',     // 예정됨
+  IN_PROGRESS = 'in_progress',  // 진행중
+  COMPLETED = 'completed',      // 완료
+  NO_SHOW = 'no_show'          // 불참
+}
 
 export enum JobRole {
   FRONTEND = 'Frontend Developer',
@@ -51,6 +57,7 @@ export interface Candidate {
   resumeUrl?: string;
   portfolioUrl?: string;
   calendarEventId?: string; // 캘린더 이벤트 ID (중복 방지용)
+  status?: InterviewStatus; // 면접 상태
 }
 
 export type ViewState = 'DASHBOARD' | 'INTERVIEW' | 'CONSOLIDATION' | 'ANALYTICS' | 'SETTINGS' | 'WEEKLY_STATS';
