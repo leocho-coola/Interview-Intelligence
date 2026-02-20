@@ -138,18 +138,26 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
   const getWeekLabel = (weekKey: string, candidates: Candidate[]) => {
     if (candidates.length === 0) return '';
     
+    // 새로운 Date 객체 생성 (원본 변경 방지)
     const firstDate = new Date(candidates[0].scheduledTime || Date.now());
     const day = firstDate.getDay();
     const diff = firstDate.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(firstDate.setDate(diff));
+    
+    // 월요일 계산 (새 객체로)
+    const monday = new Date(firstDate);
+    monday.setDate(diff);
+    monday.setHours(0, 0, 0, 0);
+    
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     
+    // 오늘 기준 이번 주 월요일 계산
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayMonday = new Date(today);
     const todayDay = today.getDay();
     const todayDiff = today.getDate() - todayDay + (todayDay === 0 ? -6 : 1);
+    
+    const todayMonday = new Date(today);
     todayMonday.setDate(todayDiff);
     todayMonday.setHours(0, 0, 0, 0);
     
@@ -195,7 +203,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
     });
     
     // 주차별로 정렬 (이번 주 → 다음 주 → 지난 주 순서)
-    return Array.from(groups.entries())
+    const result = Array.from(groups.entries())
       .map(([weekKey, weekCandidates]) => ({
         weekKey,
         label: getWeekLabel(weekKey, weekCandidates),
@@ -217,6 +225,16 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
         // 3순위: 같은 카테고리 내에서는 시간순 (미래는 최신순, 과거는 최신순)
         return b.firstTime - a.firstTime;
       });
+    
+    console.log('📊 주별 그룹핑 결과:', result.map(w => ({
+      label: w.label,
+      count: w.candidates.length,
+      isThisWeek: w.isThisWeek,
+      isNextWeek: w.isNextWeek,
+      isLastWeek: w.isLastWeek
+    })));
+    
+    return result;
   }, [candidates]);
 
   const formatTime = (ts?: number) => {
