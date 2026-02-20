@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Candidate, InterviewStatus } from '../types';
-import { getTodayEvents, filterInterviewEvents, CalendarEvent } from '../services/calendarService';
+import { Candidate, InterviewStatus, InterviewStage } from '../types';
+import { getTodayEvents, filterInterviewEvents, CalendarEvent, parseInterviewStage } from '../services/calendarService';
 import { initiateGoogleLogin, isAuthenticated, logout } from '../services/googleAuthService';
 import { 
   UserPlus, 
@@ -23,7 +23,7 @@ interface DashboardProps {
   candidates: Candidate[];
   onStartInterview: (id: string) => void;
   onViewConsolidation: (id: string) => void;
-  onCreateCandidateFromEvent?: (eventName: string, eventDescription: string, eventId?: string, eventStartTime?: string) => string;
+  onCreateCandidateFromEvent?: (eventName: string, eventDescription: string, eventId?: string, eventStartTime?: string, stage?: InterviewStage) => string;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onViewConsolidation, onCreateCandidateFromEvent }) => {
@@ -35,17 +35,26 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
 
   const handleEventClick = (event: CalendarEvent) => {
     if (onCreateCandidateFromEvent) {
+      // 캘린더 이벤트 제목에서 단계와 후보자 이름 파싱
+      const parsed = parseInterviewStage(event.summary);
+      
       // 이미 이 이벤트로 생성된 후보자가 있는지 확인
       const existingCandidate = candidates.find(c => c.calendarEventId === event.id);
       
       if (existingCandidate) {
         // 이미 생성된 후보자가 있으면 바로 면접 시작
-        console.log('✅ 기존 후보자로 면접 시작:', existingCandidate.name);
+        console.log('✅ 기존 후보자로 면접 시작:', existingCandidate.name, '단계:', parsed.stage);
         onStartInterview(existingCandidate.id);
       } else {
-        // 새로운 후보자 생성 후 면접 시작 (이벤트 시작 시간 전달)
-        console.log('✨ 신규 후보자 생성:', event.summary, '시간:', event.start);
-        const candidateId = onCreateCandidateFromEvent(event.summary, event.description || '', event.id, event.start);
+        // 새로운 후보자 생성 후 면접 시작 (단계 정보 포함)
+        console.log('✨ 신규 후보자 생성:', parsed.candidateName, '단계:', parsed.stage, '시간:', event.start);
+        const candidateId = onCreateCandidateFromEvent(
+          parsed.candidateName, 
+          event.description || '', 
+          event.id, 
+          event.start,
+          parsed.stage
+        );
         onStartInterview(candidateId);
       }
     }
@@ -89,8 +98,15 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
         sortedEvents.forEach(event => {
           const existingCandidate = candidates.find(c => c.calendarEventId === event.id);
           if (!existingCandidate) {
-            console.log('✨ 자동 후보자 생성:', event.summary);
-            onCreateCandidateFromEvent(event.summary, event.description || '', event.id, event.start);
+            const parsed = parseInterviewStage(event.summary);
+            console.log('✨ 자동 후보자 생성:', parsed.candidateName, '단계:', parsed.stage);
+            onCreateCandidateFromEvent(
+              parsed.candidateName, 
+              event.description || '', 
+              event.id, 
+              event.start,
+              parsed.stage
+            );
           }
         });
       }
@@ -560,6 +576,12 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">{candidate.role}</p>
                     <div className="flex items-center gap-1.5 flex-wrap">
                        {renderStatusBadge(candidate.status)}
+                       {/* 🆕 현재 진행 단계 뱃지 */}
+                       {candidate.currentStage && (
+                         <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md font-bold">
+                           {candidate.currentStage}
+                         </span>
+                       )}
                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold">면접 {candidate.notes.length}회</span>
                        {candidate.scheduledTime && (
                          <span className="text-[10px] text-slate-600 font-bold flex items-center gap-0.5">

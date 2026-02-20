@@ -58,6 +58,7 @@ export interface Candidate {
   portfolioUrl?: string;
   calendarEventId?: string; // 캘린더 이벤트 ID (중복 방지용)
   status?: InterviewStatus; // 면접 상태
+  currentStage?: InterviewStage; // 🆕 현재 진행 중인 면접 단계
 }
 
 export type ViewState = 'DASHBOARD' | 'INTERVIEW' | 'CONSOLIDATION' | 'ANALYTICS' | 'SETTINGS' | 'WEEKLY_STATS';

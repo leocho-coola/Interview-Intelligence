@@ -122,7 +122,7 @@ const App: React.FC = () => {
     setView('DASHBOARD');
   };
 
-  const createCandidateFromEvent = (eventName: string, eventDescription: string, eventId?: string, eventStartTime?: string): string => {
+  const createCandidateFromEvent = (eventName: string, eventDescription: string, eventId?: string, eventStartTime?: string, stage?: InterviewStage): string => {
     const newId = `cal-${Date.now()}`;
     
     // 이벤트 시작 시간을 timestamp로 변환 (전달되지 않으면 현재 시간 사용)
@@ -137,11 +137,12 @@ const App: React.FC = () => {
       resumeUrl: '',
       portfolioUrl: eventDescription, // 이벤트 설명을 포트폴리오 URL로 사용
       calendarEventId: eventId, // 캘린더 이벤트 ID 저장 (중복 방지용)
-      status: InterviewStatus.SCHEDULED // 🆕 초기 상태는 '예정됨'
+      status: InterviewStatus.SCHEDULED, // 🆕 초기 상태는 '예정됨'
+      currentStage: stage || InterviewStage.FIRST_TECHNICAL // 🆕 면접 단계 저장
     };
     
     setCandidates(prev => [...prev, newCandidate]);
-    console.log('✅ Created candidate from calendar event:', eventName, '시간:', new Date(scheduledTimestamp).toLocaleString('ko-KR'), '상태: 예정됨');
+    console.log('✅ Created candidate from calendar event:', eventName, '시간:', new Date(scheduledTimestamp).toLocaleString('ko-KR'), '단계:', stage, '상태: 예정됨');
     return newId;
   };
 
