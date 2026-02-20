@@ -10,6 +10,8 @@ import {
   FileBox, 
   Users, 
   ChevronRight, 
+  ChevronDown,
+  ChevronUp,
   Calendar, 
   RefreshCw,
   Clock,
@@ -473,7 +475,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                   <div className="w-2 h-2 rounded-full bg-slate-400"></div>
                   <h3 className="text-sm font-bold text-slate-600">{week.label} ({week.candidates.length}건)</h3>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-400" />
+                <ChevronDown className="w-5 h-5 text-slate-400" />
               </button>
             </div>
           );
@@ -490,7 +492,7 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
                   <div className="w-2 h-2 rounded-full bg-slate-400"></div>
                   <h3 className="text-sm font-bold text-slate-600">{week.label} ({week.candidates.length}건)</h3>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-400" />
+                <ChevronDown className="w-5 h-5 text-slate-400" />
               </button>
             </div>
           );
@@ -506,9 +508,9 @@ const Dashboard: React.FC<DashboardProps> = ({ candidates, onStartInterview, onV
               {(week.isLastWeek || week.isNextWeek) && (
                 <button
                   onClick={() => week.isLastWeek ? setShowLastWeek(false) : setShowNextWeek(false)}
-                  className="text-xs text-slate-500 hover:text-slate-700 font-semibold"
+                  className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 font-semibold transition-colors"
                 >
-                  접기
+                  접기 <ChevronUp className="w-4 h-4" />
                 </button>
               )}
             </div>
