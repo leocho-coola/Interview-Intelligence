@@ -10,6 +10,7 @@ import {
   InterviewResult
 } from '../types';
 import { QUESTION_POOL } from '../constants';
+import { SpeechRecognitionService, isSpeechRecognitionSupported } from '../services/speechRecognitionService';
 import { 
   GripVertical, 
   Plus, 
@@ -29,7 +30,11 @@ import {
   Maximize2,
   Minimize2,
   Layers,
-  Clock
+  Clock,
+  Mic,
+  MicOff,
+  Pause,
+  Play
 } from 'lucide-react';
 
 interface InterviewSessionProps {
@@ -74,6 +79,15 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
   const [interviewResult, setInterviewResult] = useState<InterviewResult>(draft?.interviewResult || InterviewResult.PENDING); // 🆕 면접 결과
   const [lastSaved, setLastSaved] = useState<Date | null>(draft ? new Date(draft.timestamp) : null);
   
+  // 🆕 음성 인식 관련 state
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [activeQuestionForRecording, setActiveQuestionForRecording] = useState<string | null>(null);
+  const [speechService, setSpeechService] = useState<SpeechRecognitionService | null>(null);
+  const [recordingError, setRecordingError] = useState<string | null>(null);
+  
   // 자동 임시저장 (5초마다)
   useEffect(() => {
     const interval = setInterval(() => {
@@ -94,6 +108,30 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
     
     return () => clearInterval(interval);
   }, [selectedQuestions, overallPros, overallCons, selectedStage, interviewResult, draftKey]);
+  
+  // 🆕 녹음 시간 타이머
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (isRecording && !isPaused) {
+      timer = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isRecording, isPaused]);
+  
+  // 🆕 음성 인식 초기화 및 정리
+  useEffect(() => {
+    return () => {
+      if (speechService) {
+        speechService.stop();
+      }
+    };
+  }, [speechService]);
   
   // localStorage에서 커스텀 질문 Pool 로드
   const [questionPool, setQuestionPool] = useState<Question[]>(() => {
@@ -149,6 +187,100 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
   const removeQuestion = (index: number) => {
     setSelectedQuestions(prev => prev.filter((_, i) => i !== index));
   };
+  
+  // 🆕 녹음 시간 포맷팅
+  const formatRecordingTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // 🆕 녹음 시작
+  const startRecording = (questionId: string) => {
+    if (!isSpeechRecognitionSupported()) {
+      setRecordingError('이 브라우저는 음성 인식을 지원하지 않습니다. Chrome 또는 Edge를 사용해주세요.');
+      return;
+    }
+    
+    try {
+      const service = new SpeechRecognitionService({
+        lang: 'ko-KR',
+        continuous: true,
+        interimResults: true
+      });
+      
+      service.onResult((transcript, isFinal) => {
+        if (isFinal) {
+          // 최종 결과: 답변에 추가
+          const questionIndex = selectedQuestions.findIndex(q => q.questionId === questionId);
+          if (questionIndex !== -1) {
+            updateAnswer(questionIndex, selectedQuestions[questionIndex].answerText + ' ' + transcript);
+          }
+          setInterimTranscript('');
+        } else {
+          // 임시 결과: 미리보기로 표시
+          setInterimTranscript(transcript);
+        }
+      });
+      
+      service.onError((error) => {
+        console.error('음성 인식 오류:', error);
+        setRecordingError(error);
+        setIsRecording(false);
+        setActiveQuestionForRecording(null);
+      });
+      
+      service.onEnd(() => {
+        console.log('음성 인식 종료');
+      });
+      
+      service.start();
+      setSpeechService(service);
+      setIsRecording(true);
+      setIsPaused(false);
+      setActiveQuestionForRecording(questionId);
+      setRecordingTime(0);
+      setRecordingError(null);
+      
+      console.log('✅ 녹음 시작:', questionId);
+    } catch (error) {
+      console.error('녹음 시작 실패:', error);
+      setRecordingError('녹음을 시작할 수 없습니다. 마이크 권한을 확인해주세요.');
+    }
+  };
+  
+  // 🆕 녹음 일시정지/재개
+  const togglePause = () => {
+    if (isPaused) {
+      // 재개
+      if (speechService) {
+        speechService.start();
+      }
+      setIsPaused(false);
+    } else {
+      // 일시정지
+      if (speechService) {
+        speechService.stop();
+      }
+      setIsPaused(true);
+    }
+  };
+  
+  // 🆕 녹음 중지
+  const stopRecording = () => {
+    if (speechService) {
+      speechService.stop();
+      setSpeechService(null);
+    }
+    
+    setIsRecording(false);
+    setIsPaused(false);
+    setActiveQuestionForRecording(null);
+    setInterimTranscript('');
+    setRecordingTime(0);
+    
+    console.log('⏹️ 녹음 중지');
+  };
 
   const handleSave = () => {
     if (selectedQuestions.length === 0) {
@@ -185,6 +317,22 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
 
   return (
     <div className="flex flex-col gap-4 h-[calc(100vh-40px)] animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden">
+      
+      {/* 🆕 녹음 오류 메시지 */}
+      {recordingError && (
+        <div className="mx-4 mt-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-red-700">{recordingError}</p>
+            <button 
+              onClick={() => setRecordingError(null)}
+              className="text-xs text-red-600 hover:text-red-700 font-semibold mt-1"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* Header Info - 전체 화면 너비 */}
       <div className="bg-white border-b border-slate-200 p-5 flex items-center justify-between shadow-sm shrink-0">
@@ -390,6 +538,61 @@ const InterviewSession: React.FC<InterviewSessionProps> = ({
                     placeholder="답변 핵심 내용 기록..."
                     className="w-full min-h-[120px] p-5 bg-white border border-slate-100 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
                   />
+                  
+                  {/* 🆕 녹음 컨트롤 */}
+                  <div className="mt-3 flex items-center gap-3">
+                    {!isRecording || activeQuestionForRecording !== q.questionId ? (
+                      <button
+                        onClick={() => startRecording(q.questionId)}
+                        disabled={isRecording && activeQuestionForRecording !== q.questionId}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white rounded-xl text-xs font-bold transition-all shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                      >
+                        <Mic className="w-4 h-4" />
+                        음성으로 답변 입력
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={togglePause}
+                          className="flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl text-xs font-bold transition-all shadow-lg hover:shadow-xl"
+                        >
+                          {isPaused ? (
+                            <>
+                              <Play className="w-4 h-4" />
+                              재개
+                            </>
+                          ) : (
+                            <>
+                              <Pause className="w-4 h-4" />
+                              일시정지
+                            </>
+                          )}
+                        </button>
+                        
+                        <button
+                          onClick={stopRecording}
+                          className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-lg hover:shadow-xl"
+                        >
+                          <MicOff className="w-4 h-4" />
+                          중지
+                        </button>
+                        
+                        <div className="flex items-center gap-2 px-3 py-2 bg-red-50 rounded-xl border border-red-200">
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs font-black text-red-700">{formatRecordingTime(recordingTime)}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  
+                  {/* 🆕 임시 텍스트 미리보기 */}
+                  {activeQuestionForRecording === q.questionId && interimTranscript && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                      <p className="text-xs text-blue-700 font-medium">
+                        <span className="font-bold">인식 중:</span> {interimTranscript}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))}
 
